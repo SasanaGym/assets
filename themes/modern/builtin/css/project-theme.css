@@ -1,0 +1,116 @@
+/* =============================================================================
+   project-theme.css — Gaya global proyek (brand biru)
+   -----------------------------------------------------------------------------
+   Dimuat TERAKHIR di:
+     - app/Views/themes/modern/header.php      (semua halaman admin)
+     - app/Views/themes/modern/tanpalogin.php  (halaman publik)
+     - app/Views/themes/modern/register/layout.php (login & registrasi)
+
+   Penyesuaian dari CSS asli yang diberikan — tiap butir ada alasannya:
+   1. `color: #fff !important` pada body -> `!important` DIBUANG.
+      Tanpa `!important`, warna semantik (.text-danger, .text-success,
+      .text-muted, badge, DataTables) tetap berfungsi. Body tetap putih,
+      jadi tampilannya sesuai permintaan.
+   2. `font-family: ... !important` -> `!important` DIBUANG supaya
+      pengaturan font (builtin/css/fonts/*.css + #font-switch) tetap bisa
+      menimpanya.
+   3. Selektor mati dibuang: #animated-text, .footer-waves, .custom-checkbox,
+      body > .container, body > .mt-5:first-child + .container, .svg.
+      Tidak ada elemen dengan class/id tersebut di project ini (sudah dicek
+      dengan grep). Aturan yang tidak punya target hanya menambah beban baca.
+   4. `.footer` -> `footer`. Elemen footer di sini memakai tag <footer> tanpa
+      class (lihat themes/modern/footer.php & tanpalogin.php), jadi selektor
+      `.footer` tidak akan pernah cocok.
+   5. `body > .container { flex: 1 }` -> `.site-content { flex: 1 }`.
+      Ini padanan fungsionalnya: wadah konten di layout admin adalah
+      .site-content (site.css sudah memasang flex-grow: 1; ini penegas saja).
+   6. Bagian "surface guard" di bawah adalah tambahan wajib. Bootstrap TIDAK
+      mendeklarasikan `color` pada .card / .card-body / .card-title, jadi teks
+      di dalam kartu mewarisi warna body. Karena body di project ini bertema
+      gelap (--text-main: #f1f2f4) sementara --bs-card-bg = #ffffff di mode
+      terang, kartu bersarang (mis. .row > .col > .card di dashboard sasana)
+      sudah rawan teks putih di atas kartu putih. Guard ini mengembalikan
+      warna teks tema pada permukaan tersebut sehingga tetap terbaca.
+   ============================================================================= */
+
+body {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	background: rgb(9, 80, 220);
+	background: -moz-linear-gradient(90deg, rgba(9, 80, 220, 1) 0%, rgba(9, 88, 210, 1) 50%, rgba(9, 110, 210, 1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(9, 80, 220, 1) 0%, rgba(9, 88, 210, 1) 50%, rgba(9, 110, 210, 1) 100%);
+	background: linear-gradient(90deg, rgba(9, 80, 220, 1) 0%, rgba(9, 88, 210, 1) 50%, rgba(9, 110, 210, 1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#0950dc", endColorstr="#096ed2", GradientType=1);
+	color: #fff;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Konten tumbuh agar footer menempel di dasar layar. */
+.site-content {
+	flex: 1;
+}
+
+/* dark-theme.css memasang `html[data-bs-theme="dark"] body { background:#1a1a1a }`
+   (spesifisitas 0,1,1) yang menang atas `body` di atas — sehingga gradient tidak
+   muncul saat tema gelap aktif. Selektor dengan spesifisitas setara dipakai di
+   sini supaya gradient berlaku di kedua mode. */
+html[data-bs-theme="dark"] body {
+	background: linear-gradient(90deg, rgba(9, 80, 220, 1) 0%, rgba(9, 88, 210, 1) 50%, rgba(9, 110, 210, 1) 100%);
+}
+
+h1 {
+	font-size: 70px;
+	font-weight: 700;
+}
+
+footer {
+	background-color: #252525;
+	margin-top: auto;
+}
+
+/* Ikon Bootstrap Icons (dipakai di header.php) */
+.bi {
+	height: 1em;
+	width: 1em;
+	vertical-align: -0.125em;
+}
+
+/* -----------------------------------------------------------------------------
+   Breadcrumb — dirender header.php TEPAT di atas gradient (di luar
+   .content-wrapper), jadi tidak dilindungi kartu. Link bawaan Bootstrap memakai
+   --bs-link-color (#0d6efd) dan item aktif memakai --bs-secondary-color
+   (#6c757d): keduanya biru/abu di atas latar biru sehingga nyaris tak terbaca.
+   ----------------------------------------------------------------------------- */
+.breadcrumb {
+	--bs-breadcrumb-divider-color: rgba(255, 255, 255, 0.65);
+	--bs-breadcrumb-item-active-color: rgba(255, 255, 255, 0.85);
+}
+
+.breadcrumb a {
+	color: #fff;
+	text-decoration: none;
+}
+
+.breadcrumb a:hover,
+.breadcrumb a:focus {
+	color: #fff;
+	text-decoration: underline;
+}
+
+/* -----------------------------------------------------------------------------
+   Surface guard — permukaan yang punya latar sendiri memakai warna teks tema,
+   bukan mewarisi putih dari body. Lihat catatan butir 6 di atas.
+   ----------------------------------------------------------------------------- */
+.card,
+.card-body,
+.card-header,
+.card-footer,
+.card-title,
+.card-subtitle,
+.card-text,
+.modal-content,
+.accordion-body,
+.dataTables_wrapper {
+	color: var(--bs-body-color);
+}

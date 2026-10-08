@@ -1,0 +1,917 @@
+/* =============================================================================
+   app.css — glue proyek di atas tema plus-admin
+   -----------------------------------------------------------------------------
+   Dimuat TERAKHIR setelah themes/plus-admin/assets/css/style.css, jadi aturan
+   di sini menang saat spesifisitasnya setara.
+
+   Kenapa berkas ini ada
+   ---------------------
+   style.css adalah tema hasil kompilasi yang mengunci banyak permukaan ke
+   warna terang (`background: #ffffff`, `#f8f9fb`, `--bs-card-title-color:
+   #313131`). Bootstrap 5.3 di dalamnya sudah punya mode gelap lewat
+   `[data-bs-theme="dark"]`, tapi hanya untuk variabel --bs-*; permukaan yang
+   di-hardcode tetap terang.
+
+   Jadi pola di sini: SEMUA permukaan yang di-hardcode style.css diarahkan ke
+   token --pa-*, lalu token itu ditukar saat [data-bs-theme="dark"]. Dengan
+   begitu mode terang dan gelap hanya berbeda di satu blok, bukan dua salinan
+   aturan yang harus dijaga sinkron.
+
+   Sebelumnya pendekatan proyek ini adalah memuat berkas CSS per-scheme
+   (color-schemes/army-green.css, dark-theme.css, ...). Berkas-berkas itu
+   menargetkan selektor tema lama (.site-content, .nav-header-logo, header)
+   yang tidak ada lagi di markup plus-admin — sudah diperiksa dengan grep,
+   sehingga tidak dimuat lagi.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. Token desain
+   -------------------------------------------------------------------------- */
+
+:root {
+	/* Nilai fallback; head.php menimpanya lewat <style> dari tabel setting. */
+	--pa-font-family: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--pa-font-size: 14px;
+	--pa-accent: #0033c4;
+
+	/* Aksen versi TEKS (tautan). Di mode gelap #0033c4 tidak terbaca di atas
+	   permukaan gelap, jadi nilainya ditukar terpisah dari --pa-accent yang
+	   dipakai sebagai LATAR tombol. */
+	--pa-accent-text: #0033c4;
+
+	/* Permukaan */
+	--pa-surface: #ffffff;
+	--pa-surface-muted: #f8f9fb;
+	--pa-surface-sunken: #eef1f6;
+	--pa-border: #e6e9f0;
+
+	/* Teks */
+	--pa-text: #3e4b5b;
+	--pa-text-muted: #8b95a5;
+
+	/* Sidebar */
+	--pa-sidebar-bg: #ffffff;
+	--pa-sidebar-text: #3e4b5b;
+	--pa-sidebar-hover-bg: rgba(0, 51, 196, 0.06);
+}
+
+html[data-bs-theme="dark"] {
+	--pa-surface: #1c1f27;
+	--pa-surface-muted: #14161c;
+	--pa-surface-sunken: #101218;
+	--pa-border: #2b303b;
+
+	--pa-text: #c9d0db;
+	--pa-text-muted: #8b95a5;
+
+	--pa-accent-text: #7aa2ff;
+
+	--pa-sidebar-bg: #1c1f27;
+	--pa-sidebar-text: #c9d0db;
+	--pa-sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+}
+
+/* -----------------------------------------------------------------------------
+   2. Dasar
+   -------------------------------------------------------------------------- */
+
+html,
+body {
+	font-size: var(--pa-font-size);
+}
+
+body.pa-shell {
+	font-family: var(--pa-font-family);
+	color: var(--pa-text);
+}
+
+/* style.css mengunci `html { background: #f8f9fb }`. */
+html {
+	background: var(--pa-surface-muted);
+}
+
+body.pa-shell {
+	background: var(--pa-surface-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   3. Permukaan layout
+   -------------------------------------------------------------------------- */
+
+.content-wrapper {
+	background: var(--pa-surface-muted);
+}
+
+.footer {
+	background: var(--pa-surface-muted);
+	color: var(--pa-text-muted);
+}
+
+.footer a {
+	color: var(--pa-accent-text);
+}
+
+/* -----------------------------------------------------------------------------
+   4. Kartu
+   -----------------------------------------------------------------------------
+   style.css memasang `background:#fff` dan `--bs-card-title-color:#313131`.
+   Yang kedua berbahaya: judul kartu jadi teks gelap di atas kartu gelap.
+   Dikembalikan ke variabel Bootstrap supaya ikut tema.
+   -------------------------------------------------------------------------- */
+
+.card {
+	background: var(--pa-surface);
+	border-color: var(--pa-border);
+	--bs-card-title-color: var(--bs-emphasis-color);
+	--bs-card-cap-bg: transparent;
+}
+
+.card-header,
+.card-footer {
+	border-color: var(--pa-border);
+}
+
+/* style.css menulis `.card .card-title { color: #313131 }` — spesifisitas
+   (0,2,0), jadi mengubah --bs-card-title-color saja tidak cukup: nilainya
+   tidak pernah dibaca. Di mode gelap judul kartu jadi nyaris tak terbaca.
+   Selektor di bawah menyamai spesifisitasnya dan dimuat lebih akhir. */
+.card .card-title,
+.card .card-subtitle,
+.card .card-description {
+	color: var(--pa-text);
+}
+
+/* -----------------------------------------------------------------------------
+   5. Sidebar
+   -------------------------------------------------------------------------- */
+
+.sidebar {
+	background: var(--pa-sidebar-bg);
+}
+
+body.sidebar-dark .sidebar {
+	background: var(--pa-sidebar-bg);
+}
+
+.sidebar .nav .nav-item .nav-link {
+	color: var(--pa-sidebar-text);
+}
+
+.sidebar .nav .nav-item .nav-link:hover {
+	background: var(--pa-sidebar-hover-bg);
+	color: var(--pa-accent);
+}
+
+body.sidebar-dark .sidebar .nav .nav-item .nav-link:hover {
+	color: #ffffff;
+}
+
+/* style.css hanya mengatur warna teks untuk body.sidebar-dark; warnanya
+   sudah ditangani blok di atas, jadi di sini tinggal memastikan ikon ikut. */
+.sidebar .nav .nav-item .nav-link i.menu-icon {
+	color: inherit;
+	width: 1.25rem;
+	text-align: center;
+	margin-right: 0.65rem;
+}
+
+/* Kartu profil di puncak sidebar (anak ke-1 dari ul.nav). */
+.sidebar .nav .nav-item.nav-profile .nav-link {
+	padding-top: 1.25rem;
+	padding-bottom: 1.25rem;
+}
+
+.sidebar .nav-profile-image img {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+.sidebar .nav-profile-text span {
+	color: var(--pa-sidebar-text);
+}
+
+.sidebar .nav-profile-text .text-secondary {
+	color: var(--pa-text-muted) !important;
+}
+
+/* Logo brand di sidebar (anak ke-2 dari ul.nav). */
+.sidebar .sidebar-brand-logo {
+	max-width: 150px;
+	max-height: 38px;
+	object-fit: contain;
+}
+
+/* logo_aplikasi.png proyek ini berwarna gelap di atas latar transparan, jadi
+   di sidebar gelap ia hilang sama sekali. Diberi alas terang supaya tetap
+   terbaca tanpa harus mengubah berkas logonya. Sengaja hanya menyasar <img>:
+   varian teks (span) memakai warna sidebar dan akan hilang di alas putih.
+   Hapus blok ini kalau logonya kelak diganti versi terang. */
+html[data-bs-theme="dark"] .sidebar img.sidebar-brand-logo {
+	background: #ffffff;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.25rem;
+}
+
+/* Judul kategori menu. */
+.sidebar .nav .nav-item-head {
+	color: var(--pa-text-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   6. Navbar
+   -----------------------------------------------------------------------------
+   .navbar-menu-wrapper sudah berwarna biru brand (#0033c4) dan teks putih dari
+   style.css — itu memang brand plus-admin dan cocok di kedua mode, jadi tidak
+   ditimpa. Yang perlu ditambal hanya ikon dan dropdown.
+   -------------------------------------------------------------------------- */
+
+.navbar .navbar-menu-wrapper .nav-link {
+	color: #ffffff;
+}
+
+.navbar .navbar-menu-wrapper .nav-link:hover {
+	opacity: 0.85;
+}
+
+/* Dropdown navbar memakai variabel Bootstrap; pastikan latarnya ikut tema. */
+.navbar .dropdown-menu.navbar-dropdown {
+	background: var(--pa-surface);
+	border-color: var(--pa-border);
+	color: var(--pa-text);
+}
+
+.navbar .dropdown-menu.navbar-dropdown .dropdown-item {
+	color: var(--pa-text);
+}
+
+.navbar .dropdown-menu.navbar-dropdown .dropdown-item:hover,
+.navbar .dropdown-menu.navbar-dropdown .dropdown-item:focus {
+	background: var(--pa-surface-sunken);
+	color: var(--pa-text);
+}
+
+.navbar .dropdown-menu.navbar-dropdown .dropdown-item.active {
+	background: var(--pa-accent);
+	color: #ffffff;
+}
+
+.navbar .nav-profile-img img {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+/* site.js memindahkan ikon tombol tema yang dipilih ke elemen pemicu dropdown,
+   jadi tombol pemicu harus punya ruang untuk ikon itu. */
+.nav-theme-option .nav-link {
+	min-width: 2rem;
+	text-align: center;
+}
+
+/* Panah kecil di atas dropdown.
+   --------------------------------------------------------------------------
+   style.css memasangnya di `left: 10px` untuk SEMUA dropdown navbar. Itu benar
+   untuk menu yang rata KIRI, tapi dropdown di kanan navbar memakai
+   .dropdown-menu-end (menempel ke tepi kanan pemicunya). Akibatnya panahnya
+   muncul jauh di kiri ikon pemicu — terukur pada viewport 1440px: pusat panah
+   x≈1058 sedangkan pusat ikon x≈1154, meleset ~96px.
+
+   Untuk menu rata kanan, panahnya dicerminkan ke kanan. Nilai 10px sengaja
+   sama dengan yang sudah dipakai plus-admin untuk varian RTL
+   (`.rtl … .dropdown-menu:before { right: 10px }`), jadi ini bukan angka baru.
+
+   Spesifisitasnya sama dengan aturan style.css (0,6,0) dan app.css dimuat
+   lebih akhir, jadi aturan ini menang. */
+@media (min-width: 992px) {
+	.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown .dropdown-menu-end::before {
+		left: auto;
+		right: 10px;
+	}
+}
+
+/* -----------------------------------------------------------------------------
+   7. Judul halaman & breadcrumb
+   -------------------------------------------------------------------------- */
+
+.page-header {
+	padding-bottom: 1rem;
+	margin-bottom: 1.25rem;
+	border-bottom: 1px solid var(--pa-border);
+}
+
+.page-header .page-title {
+	color: var(--pa-text);
+	font-weight: 600;
+}
+
+.breadcrumb {
+	background: transparent;
+	margin-bottom: 0.5rem;
+
+	/* style.css mengunci pemisah dan item aktif ke abu gelap (#6c757d /
+	   #495057) di dalam blok variabelnya, jadi keduanya tidak ikut tema. */
+	--bs-breadcrumb-divider-color: var(--pa-text-muted);
+	--bs-breadcrumb-item-active-color: var(--pa-text);
+}
+
+/* Dan satu aturan lagi menimpanya dengan near-black:
+   `.breadcrumb .breadcrumb-item.active { color: rgba(3,3,3,.8) }`
+   — spesifisitas (0,2,0). Di mode gelap judul halaman jadi tak terbaca. */
+.breadcrumb .breadcrumb-item.active {
+	color: var(--pa-text);
+}
+
+/* Pembatas antar item breadcrumb (">" kecil di antara "Home" dan judul modul).
+   --------------------------------------------------------------------------
+   breadcrumb() di app/Helpers/util_helper.php menyisipkan
+   --bs-breadcrumb-divider berupa SVG data-URI, tetapi URI itu CACAT: atribut
+   fill-nya tidak pernah ditutup —
+
+       fill="%236c757d/%3E%3C/svg%3E"     ← harusnya fill="%236c757d" lalu />
+
+   sehingga SVG-nya gagal di-parse dan pembatasnya tidak pernah muncul.
+   Daripada menambal helper global itu, pembatasnya diganti glyph Font Awesome
+   — sama persis dengan tema modern (`bootstrap-custom.css`: \f101
+   fa-angle-right). Jadi kedua tema tidak lagi berbeda, dan helper breadcrumb()
+   tidak perlu diubah.
+
+   Menimpa `content` secara langsung juga membuat var() di style.css tidak lagi
+   relevan; spesifisitasnya sama (0,2,0) dan app.css dimuat lebih akhir. */
+.breadcrumb-item + .breadcrumb-item::before {
+	content: "\f101";
+	font-family: 'Font Awesome 6 Free';
+	font-weight: 900;
+	font-size: 0.625rem;
+	color: var(--pa-text-muted);
+}
+
+/* ...tetapi style.css juga memberi pemisah itu `float: left`. Kotak float
+   ditempatkan di ATAS line box, bukan pada baseline. Selama pemisahnya "/"
+   seukuran teks hal itu tidak kelihatan; begitu diganti glyph 0.625rem di
+   antara teks 0.875rem, pemisahnya terangkat dan tidak sejajar dengan "Home"
+   maupun judul modul.
+
+   Float diabaikan pada flex item, jadi menjadikan .breadcrumb-item sebagai
+   flex row sekaligus mematikan float itu dan mensejajarkan pemisah dengan
+   teksnya lewat align-items. .breadcrumb sendiri sudah display:flex, jadi
+   susunan antar item tidak berubah.
+
+   Dipakai selektor .breadcrumb .breadcrumb-item (0,2,0) supaya varian
+   .breadcrumb.breadcrumb-custom .breadcrumb-item (0,3,0) di style.css, yang
+   sengaja memakai inline-block, tetap menang. */
+.breadcrumb .breadcrumb-item {
+	display: flex;
+	align-items: center;
+}
+
+/* -----------------------------------------------------------------------------
+   8. Tabel, form, dan komponen modul
+   -----------------------------------------------------------------------------
+   Modul sasana/builtin memakai .table, .form-control, .btn, DataTables, dan
+   Select2 dari Bootstrap 5 di dalam style.css. Sebagian besar sudah ikut tema
+   lewat variabel --bs-*; yang masih di-hardcode ditambal di bawah.
+   -------------------------------------------------------------------------- */
+
+.table {
+	--bs-table-color: var(--pa-text);
+	--bs-table-border-color: var(--pa-border);
+}
+
+.custom-table thead th {
+	background: var(--pa-surface-sunken);
+	color: var(--pa-text);
+}
+
+.form-control,
+.form-select {
+	color: var(--pa-text);
+	border-color: var(--pa-border);
+}
+
+html[data-bs-theme="dark"] .form-control,
+html[data-bs-theme="dark"] .form-select,
+html[data-bs-theme="dark"] .typeahead {
+	background-color: var(--pa-surface);
+	color: var(--pa-text);
+
+	/* Shorthand penuh, bukan hanya border-color. style.css mendeklarasikan
+	   `border: … solid var(--bs-border-color)`; menimpanya dengan longhand
+	   saja menyisakan style/width dari deklarasi lama sehingga hasilnya
+	   bergantung pada urutan cascade. Shorthand menghapus ambiguitas itu. */
+	border: 1px solid var(--pa-border);
+}
+
+/* style.css memaksa .form-select:focus menjadi putih. */
+.form-select:focus {
+	background-color: var(--pa-surface);
+}
+
+/* Typeahead (bootstrap-typeahead) — .tt-* di-hardcode putih oleh style.css. */
+.tt-hint,
+.tt-menu,
+.typeahead {
+	background-color: var(--pa-surface);
+	color: var(--pa-text);
+	border-color: var(--pa-border);
+}
+
+/* Select2 */
+html[data-bs-theme="dark"] .select2-container--default .select2-selection--single,
+html[data-bs-theme="dark"] .select2-container--default .select2-selection--multiple {
+	background-color: var(--pa-surface);
+	border-color: var(--pa-border);
+}
+
+html[data-bs-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+	color: var(--pa-text);
+}
+
+html[data-bs-theme="dark"] .select2-dropdown {
+	background-color: var(--pa-surface);
+	border-color: var(--pa-border);
+}
+
+html[data-bs-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+	background-color: var(--pa-accent);
+}
+
+/* DataTables */
+html[data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input,
+html[data-bs-theme="dark"] .dataTables_wrapper .dataTables_length select {
+	background-color: var(--pa-surface);
+	color: var(--pa-text);
+	border-color: var(--pa-border);
+}
+
+/* -----------------------------------------------------------------------------
+   9. Halaman autentikasi
+   -----------------------------------------------------------------------------
+   Dipakai themes/plus-admin/auth/layout.php + builtin/login.php. Seluruh warna
+   mengikuti token --pa-* dan html[data-bs-theme="dark"], jadi tidak ada satu pun
+   aturan khusus mode gelap di bagian ini.
+   -------------------------------------------------------------------------- */
+
+body.pa-auth {
+	background: var(--pa-surface-muted);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	padding: 1.5rem;
+}
+
+.pa-auth-card {
+	width: 100%;
+	max-width: 420px;
+	background: var(--pa-surface);
+	border: 1px solid var(--pa-border);
+	border-radius: 0.5rem;
+	padding: 2rem;
+	box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+}
+
+html[data-bs-theme="dark"] .pa-auth-card {
+	box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.5);
+}
+
+.pa-auth-brand {
+	text-align: center;
+	margin-bottom: 1.75rem;
+}
+
+.pa-auth-logo {
+	max-width: 180px;
+	max-height: 64px;
+	object-fit: contain;
+	margin-bottom: 1rem;
+}
+
+.pa-auth-title {
+	color: var(--pa-text);
+	font-weight: 600;
+	margin: 0;
+}
+
+.pa-auth-subtitle {
+	color: var(--pa-text-muted);
+	font-size: 0.8125rem;
+	margin: 0.35rem 0 0;
+}
+
+/* Pesan error login. Warnanya sengaja tetap merah di kedua mode — ini pesan
+   kegagalan, bukan permukaan tema. */
+.pa-auth-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	margin-bottom: 1.25rem;
+	padding: 0.75rem 0.875rem;
+	border: 1px solid rgba(220, 53, 69, 0.35);
+	border-radius: 0.375rem;
+	background: rgba(220, 53, 69, 0.1);
+	color: #b02a37;
+	font-size: 0.875rem;
+}
+
+html[data-bs-theme="dark"] .pa-auth-alert {
+	color: #ff8a94;
+}
+
+.pa-auth-alert .mdi {
+	flex-shrink: 0;
+	line-height: 1.4;
+}
+
+.pa-auth-field {
+	margin-bottom: 1.125rem;
+}
+
+.pa-auth-field .form-label {
+	color: var(--pa-text);
+	font-weight: 600;
+	font-size: 0.875rem;
+	margin-bottom: 0.4rem;
+}
+
+/* Ikon ditaruh sebagai anak absolut supaya bisa digeser tanpa mengubah
+   padding input. pointer-events: none agar klik tembus ke input. */
+.pa-auth-input {
+	position: relative;
+}
+
+.pa-auth-input > .mdi {
+	position: absolute;
+	top: 50%;
+	left: 0.875rem;
+	transform: translateY(-50%);
+	color: var(--pa-text-muted);
+	font-size: 1.125rem;
+	pointer-events: none;
+}
+
+.pa-auth-input .form-control {
+	height: auto;
+	padding: 0.7rem 0.875rem 0.7rem 2.75rem;
+	border-radius: 0.375rem;
+}
+
+/* Input password punya ikon kedua di kanan (tombol lihat password). */
+.pa-auth-input.has-toggle .form-control {
+	padding-right: 2.75rem;
+}
+
+.pa-auth-toggle {
+	position: absolute;
+	top: 50%;
+	right: 0.5rem;
+	transform: translateY(-50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	background: none;
+	border: 0;
+	border-radius: 0.25rem;
+	color: var(--pa-text-muted);
+	cursor: pointer;
+}
+
+.pa-auth-toggle:hover {
+	color: var(--pa-text);
+}
+
+.pa-auth-check {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1.375rem;
+}
+
+.pa-auth-check .form-check-input {
+	flex-shrink: 0;
+	margin: 0;
+}
+
+.pa-auth-check .form-check-label {
+	color: var(--pa-text-muted);
+	font-size: 0.875rem;
+}
+
+.pa-auth-submit {
+	width: 100%;
+	padding: 0.7rem;
+	border: 1px solid var(--pa-accent);
+	border-radius: 0.375rem;
+	background: var(--pa-accent);
+	color: #ffffff;
+	font-weight: 600;
+	font-size: 0.9375rem;
+}
+
+.pa-auth-submit:hover,
+.pa-auth-submit:focus {
+	background: var(--pa-accent);
+	border-color: var(--pa-accent);
+	color: #ffffff;
+	filter: brightness(1.1);
+}
+
+.pa-auth-links {
+	text-align: center;
+	color: var(--pa-text-muted);
+	font-size: 0.875rem;
+	margin: 1.25rem 0 0;
+}
+
+.pa-auth-links a {
+	color: var(--pa-accent-text);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.pa-auth-links a:hover {
+	text-decoration: underline;
+}
+
+.pa-auth-footer {
+	color: var(--pa-text-muted);
+	font-size: 0.8125rem;
+	margin: 1.5rem 0 0;
+	text-align: center;
+}
+
+/* -----------------------------------------------------------------------------
+   9b. Halaman register
+   -----------------------------------------------------------------------------
+   Tambahan di atas .pa-auth-* untuk themes/plus-admin/register/*. Form register
+   punya tiga hal yang tidak ada di login: kartu yang lebih lebar, pemisah antar
+   bagian, dan meter kekuatan password. Semuanya tetap memakai token --pa-*.
+   -------------------------------------------------------------------------- */
+
+/* Register punya 5 field; 420px (lebar login) membuatnya tampak sempit. */
+.pa-auth-card.is-wide {
+	max-width: 30rem;
+}
+
+/* Penanda field wajib. Merah tetap di kedua mode — ini penanda, bukan
+   permukaan tema. */
+.pa-auth-req {
+	color: #dc3545;
+	margin-left: 0.15rem;
+}
+
+html[data-bs-theme="dark"] .pa-auth-req {
+	color: #ff8a94;
+}
+
+/* Pemisah bagian, mis. "Keamanan Akun". Garisnya dua pseudo-element yang
+   memakai sisa ruang flex, jadi panjang teks tidak perlu diketahui. */
+.pa-auth-divider {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 1.5rem 0 1.25rem;
+	color: var(--pa-text-muted);
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.pa-auth-divider::before,
+.pa-auth-divider::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: var(--pa-border);
+}
+
+/* Keterangan kecil di bawah field atau di atas form. */
+.pa-auth-note {
+	color: var(--pa-text-muted);
+	font-size: 0.8125rem;
+	margin: 0.35rem 0 0;
+}
+
+.pa-auth-note:last-child {
+	margin-bottom: 0;
+}
+
+/* Meter kekuatan password (pwstrength-bootstrap). Verdict ("Weak", "Good", …)
+   dirender DI DALAM bar, jadi tingginya harus cukup untuk satu baris teks —
+   .progress bawaan Bootstrap hanya 1rem. Warna bar datang dari kelas bg-*
+   Bootstrap yang ditambahkan pustaka itu sendiri. */
+.pa-auth-strength {
+	margin-top: 0.5rem;
+}
+
+.pa-auth-strength .progress {
+	height: 1.25rem;
+	border-radius: 0.25rem;
+	background: var(--pa-surface-muted);
+}
+
+.pa-auth-strength .progress-bar {
+	font-size: 0.6875rem;
+	font-weight: 600;
+	transition: width 0.3s ease;
+}
+
+/* Varian sukses dari .pa-auth-alert, dipakai show_message.php setelah
+   registrasi/aktivasi berhasil. Specificity-nya lebih tinggi dari aturan mode
+   gelap milik .pa-auth-alert, jadi warnanya tidak tertimpa merah. */
+.pa-auth-alert.is-success {
+	border-color: rgba(25, 135, 84, 0.35);
+	background: rgba(25, 135, 84, 0.1);
+	color: #0f5132;
+}
+
+html[data-bs-theme="dark"] .pa-auth-alert.is-success {
+	color: #75d49b;
+}
+
+/* Pesan validasi bisa berupa daftar (satu baris per field yang gagal), jadi
+   isinya dibungkus elemen blok sendiri di dalam flex container .pa-auth-alert. */
+.pa-auth-alert-body {
+	min-width: 0;
+}
+
+.pa-auth-alert-body ul {
+	margin: 0;
+	padding-left: 1.125rem;
+}
+
+.pa-auth-alert-body a {
+	color: inherit;
+	font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------------
+   10. Tambalan untuk cacat kompilasi style.css
+   -----------------------------------------------------------------------------
+   style.css masih menyimpan beberapa fungsi SCSS yang tidak terkompilasi
+   (mis. `color: color(dark)` dan `color: theme- #ffffff`). Deklarasi seperti
+   itu tidak valid dan dibuang browser, jadi teks yang seharusnya berwarna
+   akhirnya mewarisi. Aturan di bawah mengembalikan yang paling terlihat.
+   -------------------------------------------------------------------------- */
+
+.footer {
+	color: var(--pa-text-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   11. Menu manager (builtin/menu)
+   -----------------------------------------------------------------------------
+   Halaman ini memakai markup yang gayanya dulu hanya ada di
+   themes/modern/builtin/css/site.css — berkas tema lama yang TIDAK dimuat
+   plus-admin (isinya seluruh tema modern, bukan hanya komponen ini). Tanpa
+   aturan di bawah:
+
+     - .toolbox di tiap kategori jatuh sebagai daftar <ul> ber-bullet yang
+       menumpuk ke bawah, bukan dua ikon di tepi kanan baris;
+     - tombol edit/hapus tiap item nestable memakai kelas .pull-right
+       (Bootstrap 3, sudah tidak ada di Bootstrap 5) sehingga ikut float kiri
+       berdempetan dengan tombol expand/collapse;
+     - .icon-preview di form menu tampil sebesar teks biasa.
+
+   Disalin ulang di sini, bukan dengan memuat site.css, supaya halaman ini tidak
+   ikut menarik palet tema lama. Penempatan .toolbox dibuat dengan flexbox, bukan
+   position:absolute + z-index:999999 seperti aslinya — tidak perlu offset ajaib
+   dan tetap rapi berapa pun panjang nama kategori.
+   -------------------------------------------------------------------------- */
+
+.kategori-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* min-width:0 supaya nama kategori yang panjang memendek (ellipsis) alih-alih
+   mendorong toolbox keluar baris. */
+.kategori-item > .text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.kategori-item .toolbox {
+	display: flex;
+	align-items: center;
+	gap: 0.125rem;
+	flex-shrink: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.kategori-item .toolbox > li {
+	list-style: none;
+}
+
+.kategori-item .toolbox .btn-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border: 0;
+	border-radius: 0.25rem;
+	text-decoration: none;
+	/* Ikon ini berada di dalam daftar kategori yang bisa diseret; tanpa ini
+	   sentuhan di atasnya ikut tertangkap sebagai gestur geser. */
+	touch-action: none;
+}
+
+.kategori-item .toolbox .btn-action:hover {
+	background: rgba(0, 0, 0, 0.08);
+}
+
+html[data-bs-theme="dark"] .kategori-item .toolbox .btn-action:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+/* Baris "Uncategorized" memakai .list-group-item-secondary dari Bootstrap, jadi
+   hanya perlu dibedakan sebagai teks sekunder, bukan diwarnai ulang. */
+#list-kategori .uncategorized .text {
+	font-style: italic;
+}
+
+/* Tombol edit/hapus item nestable. jquery.nestable.min.css sudah mengatur
+   .dd-item > button (float:left, 25x20, tanpa latar); yang hilang hanya
+   pengganti .pull-right. */
+.dd-item > button.pull-right {
+	float: right;
+}
+
+.dd-item > button.pull-right:hover {
+	opacity: 0.75;
+}
+
+/* Pratinjau ikon di modal form menu (vendors/wdi/wdi-fapicker). Berdampingan
+   dengan <select name="use_icon"> yang di-float oleh .form-inline di bawah,
+   jadi line-height-nya disamakan dengan tinggi select supaya sejajar. */
+.icon-preview {
+	display: inline-block;
+	vertical-align: middle;
+	padding: 0;
+	margin-left: 0.625rem;
+	color: var(--pa-text-muted);
+	background: none;
+	border: 0;
+	cursor: pointer;
+	outline: none;
+	font-size: 1.75rem;
+	line-height: 2.25rem;
+}
+
+.icon-preview:hover {
+	color: var(--pa-text);
+}
+
+/* Kelompok tombol aksi di dalam sel tabel modul. */
+.btn-action-group {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	gap: 0.25rem;
+}
+
+.btn-action-group a,
+.btn-action-group button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* .form-inline dipakai modal form menu (menu-form.php) untuk menaruh <select>
+   dan pratinjau ikon dalam satu baris. Kelas itu DIHAPUS di Bootstrap 5, jadi
+   tanpa aturan ini ketiga barisnya menumpuk ke bawah selebar kolom.
+
+   Sengaja disalin apa adanya dari site.css — float + clearfix, bukan flexbox —
+   karena isinya di-upgrade Select2 (width: 'resolve'), yang menghitung lebarnya
+   sendiri dari lebar elemen asli. Mengganti mekanisme tata letaknya berarti
+   mengubah angka yang dibaca Select2. */
+.form-inline input,
+.form-inline select {
+	float: left;
+	width: auto;
+}
+
+.form-inline input:not(:last-child),
+.form-inline select:not(:last-child) {
+	margin-right: 3px;
+}
+
+.form-inline::after {
+	content: "";
+	display: block;
+	clear: both;
+}

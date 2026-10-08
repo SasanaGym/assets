@@ -1,0 +1,57 @@
+.sidebar {
+	background: #373d53;
+	color: #8e96a3;
+}
+
+.sidebar nav li>a {
+	color: #8e96a3;
+}
+.sidebar nav li>a:hover {
+	background: rgba(142, 150, 163, 0.25);
+    color: #ffffff !important;
+}
+.sidebar nav li>a:hover i.sidebar-menu-icon {
+	color: #FFFFFF;
+}
+.sidebar nav li .submenu a:hover {
+	background: rgba(26, 26, 26, 0.3);
+    color: #ffffff !important;
+}
+
+.sidebar nav .menu:hover {
+	background: none;
+}
+.sidebar nav .menu:hover>a {
+	color: #8e96a3;
+}
+.sidebar nav .submenu {
+	position: relative;
+	top: 0;
+	background: #1a1a1a;
+	display: none;
+}
+.sidebar nav li.highlight > a.has-children {
+    color: #8e96a3;
+}
+.sidebar nav>ul>li.highlight>a {
+	 color: #FFFFFF !important;
+}
+.sidebar nav li.highlight>a {
+	background: #1a1a1a !important;
+    color: #8e96a3;
+}
+.sidebar nav li.tree-open>a {
+	background: rgba(142, 150, 163, 0.25);
+    color: #ffffff;
+}
+.submenu nav li .submenu li.highlight>a {
+    background: #1a1a1a !important;
+}
+
+.sidebar-guide {
+    background: #1a1a1a;
+}
+.sidebar-guide .arrow {
+    background: #1a1a1a;
+	color: #8e96a3;
+}

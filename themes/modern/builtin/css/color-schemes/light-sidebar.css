@@ -1,0 +1,47 @@
+/* SIDEBAR */
+.sidebar {
+	background: #FFFFFF;
+}
+.sidebar .menu li a i.list-icon {
+    color: #8e96a3;
+}
+.sidebar .menu li a {
+    color: #8e96a3;
+}
+
+.sidebar .sidebar-topparent:hover >a,
+.sidebar .menu li a:hover {
+    background: #373d53;
+    color: #FFFFFF;
+    box-shadow: inset 5px 0 #1a1a1a;
+}
+.sidebar .menu li a:hover i,
+.sidebar .menu li.hover>a i{
+    color: inherit;
+}
+.nav-title {
+	color: #8e96a3;
+    border-bottom: 1px solid #8e96a3;
+}
+.sidebar .menu-kategori {
+	color: #373d53;
+}
+.sidebar nav li.highlight>a {
+    background: rgba(142, 150, 163, 0.25);
+}
+.sidebar nav li>a {
+    color: #373d53;
+}
+.sidebar nav li > a:hover {
+    background: rgba(142, 150, 163, 0.25);
+}
+
+.sidebar nav>ul>li.tree-open>a {
+    background: rgba(142, 150, 163, 0.25);
+}
+.sidebar nav>ul>li.highlight>a {
+    color: #ffffff;
+}
+.sidebar nav .submenu {
+	background: #ffffff;
+}

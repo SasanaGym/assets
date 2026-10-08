@@ -1,0 +1,51 @@
+/* https://stackoverflow.com/a/48545164 */
+
+.list-group-item {
+    width: 95%;
+    margin: 1% !important;
+}
+
+@media (min-width: 576px) {
+    .list-group-item {
+        width: 47%;
+        margin: 5px 1.5% !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .list-group-item {
+        width: 31.333%;
+        margin: 5px 1% !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .list-group-item {
+        width: 23%;
+        margin: 5px 1% !important;
+    }
+}
+
+/* Dark mode: warna link global (#373d53) sama dengan background .card dark,
+   jadi label menu ikut hilang. Paksa kontras di tema gelap. */
+html[data-bs-theme="dark"] #cardSearchList > .list-group-item {
+    background-color: transparent;
+}
+
+html[data-bs-theme="dark"] a.card-icon-link {
+    color: #f1f2f4;
+}
+
+html[data-bs-theme="dark"] a.card-icon-link:hover {
+    color: #ffffff;
+}
+
+/* source: https://stackoverflow.com/a/60530620 */
+a.card-icon-link:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+}

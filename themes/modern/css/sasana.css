@@ -1,0 +1,305 @@
+/* =============================================================================
+   Modul Sasana Gym — sasana.css
+   Gaya tambahan untuk kartu statistik, kartu customer (QR), dan halaman check-in.
+   Memakai variabel Bootstrap agar otomatis mengikuti tema terang/gelap.
+   ============================================================================= */
+
+/* ---------- Kartu statistik ---------- */
+.sasana-stat .card-body {
+	border-left: 4px solid var(--bs-primary);
+}
+
+.sasana-stat-alt .card-body {
+	border-left-color: var(--bs-success);
+}
+
+.sasana-stat-label {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--bs-secondary-color, #6c757d);
+	margin-bottom: 0.25rem;
+}
+
+.sasana-stat-value {
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+/* ---------- Kartu customer (halaman detail) ---------- */
+.sasana-card {
+	border: 1px dashed var(--bs-border-color, #dee2e6);
+}
+
+.sasana-qr {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.75rem;
+	background: #ffffff;
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
+.sasana-qr table {
+	margin: 0 auto;
+	border-collapse: collapse;
+}
+
+.sasana-barcode {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 1.05rem;
+	letter-spacing: 0.12em;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+}
+
+/* ---------- Halaman check-in ---------- */
+.sasana-checkin-card {
+	border-left: 5px solid var(--bs-success);
+}
+
+.sasana-checkin-card h4 {
+	margin-bottom: 0.15rem;
+}
+
+/* select2 agar mengikuti tinggi form Bootstrap */
+.select2-container .select2-selection--single {
+	height: calc(1.5em + 0.75rem + 2px);
+	padding: 0.375rem 0.75rem;
+}
+
+.select2-container--default .select2-selection--single {
+	border-color: var(--bs-border-color, #ced4da);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+	height: calc(1.5em + 0.75rem);
+}
+
+/* ---------- Tabel ---------- */
+.sasana-stat-value .badge,
+.table th {
+	white-space: nowrap;
+}
+
+/* ---------- Typeahead Autocomplete ---------- */
+.twitter-typeahead {
+	display: block !important;
+	width: 100% !important;
+	position: relative !important;
+}
+
+.twitter-typeahead .tt-hint {
+	color: #999999;
+}
+
+.twitter-typeahead .tt-menu {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 1050;
+	display: none;
+	width: 100%;
+	min-width: 100%;
+	margin-top: 4px;
+	padding: 6px 0;
+	font-size: 0.95rem;
+	background-color: var(--bs-body-bg, #ffffff);
+	color: var(--bs-body-color, #212529);
+	border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.15));
+	border-radius: 0.375rem;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+	max-height: 280px;
+	overflow-y: auto;
+}
+
+.twitter-typeahead .tt-suggestion {
+	display: block;
+	width: 100%;
+	padding: 8px 14px;
+	clear: both;
+	font-weight: 400;
+	color: var(--bs-body-color, #212529);
+	text-align: inherit;
+	white-space: normal;
+	background-color: transparent;
+	border: 0;
+	cursor: pointer;
+}
+
+.twitter-typeahead .tt-suggestion:hover,
+.twitter-typeahead .tt-suggestion.tt-cursor {
+	color: #ffffff;
+	background-color: var(--bs-primary, #0d6efd);
+	text-decoration: none;
+}
+
+.twitter-typeahead .tt-suggestion:hover small,
+.twitter-typeahead .tt-suggestion.tt-cursor small,
+.twitter-typeahead .tt-suggestion:hover .text-muted,
+.twitter-typeahead .tt-suggestion.tt-cursor .text-muted {
+	color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.twitter-typeahead .tt-empty {
+	padding: 8px 14px;
+	color: var(--bs-secondary-color, #6c757d);
+}
+
+.sLoading {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50"><path fill="%23999" d="M25,5A20,20 0 0,0 5,25A20,20 0 0,0 25,45A20,20 0 0,0 45,25H39A14,14 0 0,1 25,39A14,14 0 0,1 11,25A14,14 0 0,1 25,11V5Z"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite"/></path></svg>');
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	background-size: 18px 18px;
+}
+
+/* ---------- SweetAlert2 Modal Overlay & Centering ---------- */
+.swal2-container {
+	display: flex !important;
+	position: fixed !important;
+	z-index: 99999 !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	box-sizing: border-box !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0.625em !important;
+	overflow-x: hidden !important;
+	background-color: rgba(0, 0, 0, 0.5) !important;
+	-webkit-overflow-scrolling: touch;
+}
+
+.swal2-container.swal2-backdrop-hide {
+	background: transparent !important;
+}
+
+.swal2-popup {
+	display: none;
+	position: relative !important;
+	box-sizing: border-box !important;
+	flex-direction: column !important;
+	justify-content: center !important;
+	width: 32em !important;
+	max-width: 95% !important;
+	padding: 1.5rem !important;
+	border: none !important;
+	border-radius: 0.75rem !important;
+	background: var(--bs-body-bg, #ffffff) !important;
+	color: var(--bs-body-color, #212529) !important;
+	font-family: inherit !important;
+	font-size: 1rem !important;
+	box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25) !important;
+}
+
+.swal2-popup.swal2-show {
+	display: flex !important;
+}
+
+.swal2-title {
+	position: relative !important;
+	max-width: 100% !important;
+	margin: 0 0 0.75rem 0 !important;
+	padding: 0 !important;
+	color: inherit !important;
+	font-size: 1.35rem !important;
+	font-weight: 600 !important;
+	text-align: center !important;
+}
+
+.swal2-html-container {
+	z-index: 1 !important;
+	justify-content: center !important;
+	margin: 0.5rem 0 1rem 0 !important;
+	padding: 0 !important;
+	overflow: auto !important;
+	color: inherit !important;
+	font-size: 1rem !important;
+	text-align: inherit !important;
+	word-wrap: break-word !important;
+}
+
+.swal2-actions {
+	display: flex !important;
+	z-index: 1 !important;
+	box-sizing: border-box !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: auto !important;
+	margin: 1.25rem auto 0 !important;
+	padding: 0 !important;
+}
+
+.swal2-actions button {
+	margin: 0.25rem 0.5rem !important;
+}
+
+.swal2-input,
+.swal2-file,
+.swal2-textarea,
+.swal2-select,
+.swal2-radio,
+.swal2-checkbox {
+	margin: 0.5rem auto !important;
+	box-sizing: border-box !important;
+	width: 100% !important;
+}
+
+.swal2-input-label {
+	display: block !important;
+	margin-bottom: 0.35rem !important;
+	font-weight: 500 !important;
+}
+
+.swal2-icon {
+	position: relative !important;
+	box-sizing: content-box !important;
+	justify-content: center !important;
+	width: 4.5em !important;
+	height: 4.5em !important;
+	margin: 1rem auto 1rem auto !important;
+	border: 0.25em solid transparent !important;
+	border-radius: 50% !important;
+	line-height: 4.5em !important;
+	cursor: default !important;
+	user-select: none !important;
+}
+
+.swal2-icon.swal2-question {
+	border-color: #87adbd !important;
+	color: #87adbd !important;
+}
+
+.swal2-icon.swal2-warning {
+	border-color: #f8bb86 !important;
+	color: #f8bb86 !important;
+}
+
+.swal2-icon.swal2-info {
+	border-color: #3fc3ee !important;
+	color: #3fc3ee !important;
+}
+
+.swal2-icon.swal2-success {
+	border-color: #a5dc86 !important;
+	color: #a5dc86 !important;
+}
+
+.swal2-icon.swal2-error {
+	border-color: #f27474 !important;
+	color: #f27474 !important;
+}
+
+.swal2-icon .swal2-icon-content {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	font-size: 3rem !important;
+}
+
+

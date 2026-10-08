@@ -1,0 +1,31 @@
+header {
+    background: #4b5320;
+  }
+  .site-content {
+    background-color: #ffffff;
+  }
+  header,
+  header > ul > li > a {
+    color: #ffffff;
+  }
+  .sidebar nav > ul > li.highlight > a {
+    background: #373d53 !important;
+  }
+  /* Slate, bukan charcoal: tulisan pada logo_aplikasi.png berwarna
+     hitam dengan latar transparan, jadi hilang di atas latar gelap. */
+  .nav-header-logo {
+    background: #8e96a3;
+    color: #1a1a1a;
+  }
+  .nav-header-logo p {
+    color: rgba(255, 255, 255, 0.95);
+  }
+  .account-img-profile {
+    background: #8e96a3;
+  }
+  .account-menu-container {
+    background: #ffffff;
+  }
+  .account-menu li a:hover {
+    background: rgba(142, 150, 163, 0.2);
+  }
