@@ -1,0 +1,251 @@
+/* =============================================================================
+   pwa-banner.css — banner "Pasang aplikasi" dan "Versi baru tersedia".
+   -----------------------------------------------------------------------------
+   Berkas ini dimuat oleh app/Views/partials/pwa_head.php, yang dipakai KEDUA
+   tema (plus-admin dan modern). Karena itu warnanya tidak boleh bergantung pada
+   token satu tema saja: setiap var() diberi nilai cadangan, dan mode gelap
+   ditangani lewat dua jalur sekaligus —
+
+     html[data-bs-theme="dark"]              dipakai plus-admin dan modern
+     @media (prefers-color-scheme: dark)     untuk halaman yang tidak
+                                             menyetel data-bs-theme sama sekali
+                                             (mis. themes/modern/tanpalogin.php)
+
+   Jarak bawah memakai env(safe-area-inset-bottom). Di iPhone tanpa tombol home,
+   1.5rem dari tepi bawah jatuh tepat di belakang garis indikator home; nilai
+   env() menambahkannya hanya pada perangkat yang memang punya sisipan itu dan
+   bernilai 0 di tempat lain.
+
+   Kontrak dengan assets/js/pwa-banner.js dan partials/pwa_banner.php
+   (jangan ubah salah satunya saja):
+     #pwaInstallBanner  wadah; kelas .show menampilkan
+     #pwaInstallBtn     tombol Pasang (disembunyikan di iOS)
+     #pwaIosHint        petunjuk "Bagikan → Add to Home Screen" khusus iOS
+     #pwaDismissBtn     tombol tutup
+     #pwaUpdateBanner   pemberitahuan versi baru
+     #pwaUpdateBtn      tombol muat ulang
+   ============================================================================= */
+
+.pwa-banner {
+	position: fixed;
+	bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1040; /* di atas konten & navbar, di bawah backdrop modal (1050) */
+
+	max-width: 520px;
+	width: calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+	display: none;
+
+	background: var(--pa-surface, #ffffff);
+	border: 1px solid var(--pa-border, #e6e9f0);
+	border-radius: 0.5rem;
+	box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.16);
+	color: var(--pa-text, #3e4b5b);
+	font-family: var(--pa-font-family, "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Banner pembaruan duduk di atas banner pasang supaya keduanya tidak menumpuk
+   kalau kebetulan muncul bersamaan. */
+.pwa-banner--update {
+	bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pwa-banner.show {
+	display: block;
+	animation: pwaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pwaSlideUp {
+	from {
+		transform: translateX(-50%) translateY(1.5rem);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(-50%) translateY(0);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pwa-banner.show {
+		animation: none;
+	}
+}
+
+.pwa-banner-content {
+	display: flex;
+	align-items: center;
+	gap: 0.875rem;
+	padding: 0.875rem 1.125rem;
+}
+
+.pwa-icon {
+	flex-shrink: 0;
+	width: 1.375rem;
+	height: 1.375rem;
+	color: var(--pa-accent, #0033c4);
+}
+
+.pwa-text {
+	flex: 1;
+	min-width: 0;
+	color: var(--pa-text, #3e4b5b);
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+/* Petunjuk iOS pindah ke barisnya sendiri: kalimatnya jauh lebih panjang
+   daripada teks utama dan akan menggencet tombol kalau tetap sebaris. */
+.pwa-ios-hint {
+	display: block;
+	margin-top: 0.25rem;
+	color: var(--pa-text-muted, #8b95a5);
+	font-size: 0.8125rem;
+	font-weight: 400;
+}
+
+.pwa-ios-hint[hidden] {
+	display: none;
+}
+
+/* Ikon Bagikan disejajarkan dengan garis dasar teks, bukan dengan kotak
+   barisnya — tanpa ini ikonnya tampak melayang di atas kalimat. */
+.pwa-ios-share {
+	display: inline-block;
+	width: 0.9375rem;
+	height: 0.9375rem;
+	margin: 0 0.0625rem;
+	vertical-align: -0.1875rem;
+}
+
+.pwa-btn {
+	flex-shrink: 0;
+	background: var(--pa-accent, #0033c4);
+	color: #ffffff;
+	border: 1px solid var(--pa-accent, #0033c4);
+	border-radius: 0.375rem;
+	padding: 0.4rem 1.1rem;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	line-height: 1.4;
+	cursor: pointer;
+	transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.pwa-btn:hover {
+	filter: brightness(1.1);
+}
+
+.pwa-btn:active {
+	transform: translateY(1px);
+}
+
+.pwa-btn:focus-visible {
+	outline: 2px solid var(--pa-accent, #0033c4);
+	outline-offset: 2px;
+}
+
+.pwa-btn[hidden] {
+	display: none;
+}
+
+.pwa-close {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 0.375rem;
+	color: var(--pa-text-muted, #8b95a5);
+	font-size: 1.375rem;
+	line-height: 1;
+	cursor: pointer;
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.pwa-close:hover {
+	color: var(--pa-text, #3e4b5b);
+	background: var(--pa-surface-sunken, #eef1f6);
+}
+
+.pwa-close:focus-visible {
+	outline: 2px solid var(--pa-accent, #0033c4);
+	outline-offset: 2px;
+}
+
+/* --- Mode gelap -----------------------------------------------------------
+   plus-admin dan modern menukar token --pa-* lewat data-bs-theme, jadi di sana
+   cukup bayangannya yang dinaikkan. Halaman tanpa data-bs-theme tidak punya
+   token itu sama sekali dan jatuh ke nilai cadangan yang terang — untuk itu
+   warnanya ditulis ulang penuh di blok prefers-color-scheme di bawah. */
+html[data-bs-theme="dark"] .pwa-banner {
+	box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+	html:not([data-bs-theme="light"]) .pwa-banner {
+		background: var(--pa-surface, #1b2027);
+		border-color: var(--pa-border, #2b323c);
+		box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.55);
+		color: var(--pa-text, #d7dde5);
+	}
+
+	html:not([data-bs-theme="light"]) .pwa-text {
+		color: var(--pa-text, #d7dde5);
+	}
+
+	html:not([data-bs-theme="light"]) .pwa-ios-hint {
+		color: var(--pa-text-muted, #93a0b1);
+	}
+
+	html:not([data-bs-theme="light"]) .pwa-close {
+		color: var(--pa-text-muted, #93a0b1);
+	}
+
+	html:not([data-bs-theme="light"]) .pwa-close:hover {
+		color: var(--pa-text, #d7dde5);
+		background: var(--pa-surface-sunken, #242b34);
+	}
+}
+
+/* Penyesuaian tampilan ponsel */
+@media (max-width: 500px) {
+	.pwa-banner {
+		bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+		width: calc(100% - 1.25rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+	}
+
+	.pwa-banner--update {
+		bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+	}
+
+	.pwa-banner-content {
+		gap: 0.625rem;
+		padding: 0.625rem 0.875rem;
+	}
+
+	.pwa-icon {
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	.pwa-text {
+		font-size: 0.75rem;
+	}
+
+	.pwa-ios-hint {
+		font-size: 0.6875rem;
+	}
+
+	.pwa-btn {
+		padding: 0.35rem 0.875rem;
+		font-size: 0.75rem;
+	}
+}

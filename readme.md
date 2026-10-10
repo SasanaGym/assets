@@ -45,6 +45,12 @@ penjualan gym.
   serta view bersama modul (`sasana.css`, `sasana.js`)
 - `images/` — logo aplikasi, logo login, favicon, avatar, ikon filepicker, dan
   gambar contoh (`foto/`, `pelanggan/`, `produk/`, `user/`)
+- `assets/` — aset milik aplikasi sendiri: `css/pwa-banner.css` &
+  `js/pwa-banner.js` (banner PWA), plus `grocery_crud/` dan `uploads/`
+  warisan template (lihat [Catatan Aset](#-catatan-aset))
+- `icons/` — set ikon PWA yang dirujuk `public/manifest.json`
+  (`icon-72x72` … `icon-512x512`, `maskable-192/512`,
+  `apple-touch-icon-180x180`)
 
 **Tech Stack:** jQuery · Bootstrap 5 + Bootswatch · Font Awesome & Bootstrap
 Icons · DataTables · Select2 · SweetAlert2 · TinyMCE · Chart.js / ApexCharts /
@@ -287,9 +293,22 @@ Repo ini adalah cermin `sasana-apps/public/`. Aturan mainnya:
    rsync -a --delete /d/DEV/PHP/sasana-apps/public/vendors/ vendors/
    rsync -a --delete /d/DEV/PHP/sasana-apps/public/themes/  themes/
    rsync -a --delete /d/DEV/PHP/sasana-apps/public/images/  images/
+   rsync -a --delete /d/DEV/PHP/sasana-apps/public/assets/  assets/
+   rsync -a --delete /d/DEV/PHP/sasana-apps/public/icons/   icons/
    ```
+   **`rsync` belum tentu ada** di mesin Windows + Git Bash. Alternatifnya
+   `robocopy /MIR` (semantik sama). Git Bash mengonversi argumen `/MIR` menjadi
+   path Windows sehingga robocopy menolak — jalankan dengan konversi path mati:
+   ```bash
+   export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
+   robocopy "D:\DEV\PHP\sasana-apps\public\themes" "D:\DEV\PHP\assets_gym\themes" /MIR /L
+   ```
+   `/L` = dry-run; buang `/L` untuk eksekusi.
 4. Naikkan tag versi setelah perubahan yang memengaruhi aplikasi, lalu update
    `CLOUD_VER` di `sasana-apps/app/Config/App.php`.
+   **Perubahan yang tidak memengaruhi aplikasi** (mis. menambah folder yang
+   tidak pernah dimuat lewat `asset_url()`) cukup di-push ke `main` tanpa tag —
+   `CLOUD_VER` mem-pin tag, jadi tanpa tag baru CDN tidak berubah.
 
 ---
 
@@ -297,11 +316,26 @@ Repo ini adalah cermin `sasana-apps/public/`. Aturan mainnya:
 
 ### Berkas yang belum disalin
 
-- **`icons/`** — set ikon PWA (`icon-72x72` … `icon-512x512`,
-  `maskable-192/512`, `apple-touch-icon-180x180`) ada di
-  `sasana-apps/public/icons/` dan dirujuk oleh `public/manifest.json`, tetapi
-  **belum ada di repo ini**. Kalau PWA harus tetap jalan saat ikon lokal hilang,
-  folder ini perlu disalin ke sini.
+Tidak ada lagi — per 11 Okt 2026 seluruh folder aset `public/` sudah dicermin
+(`vendors/`, `themes/`, `images/`, `assets/`, `icons/`). Penambahan `assets/`
+dan `icons/` ini **belum dirilis sebagai tag**, jadi CDN masih menyajikan
+tag `0.0.2` yang belum memuatnya.
+
+### Catatan isi `assets/`
+
+Hanya dua berkas di sini yang dimuat lewat `asset_url()` — `assets/css/pwa-banner.css`
+dan `assets/js/pwa-banner.js` (partial `pwa_head.php` & `pwa_banner.php`). Hanya
+keduanya yang bisa benar-benar jatuh ke CDN kalau berkas lokal hilang.
+
+Sisanya ikut dicermin semata-mata supaya repo ini utuh terhadap `public/`:
+
+| Path | Keterangan |
+|---|---|
+| `assets/grocery_crud/` | 586 berkas (±9,5 MB), library **GroceryCRUD legacy** (sandbox `master/data`). URL asetnya dibangun `app/Libraries/GroceryCrud.php` lewat `base_url()`, **bukan** `asset_url()` — jadi tidak akan pernah diambil dari CDN. Lihat juga `docs/tunning.md` soal permukaan serangnya yang belum ditinjau. |
+| `assets/uploads/files/` | 2 PDF dummy + `index.html` dari template. Tidak ada kode yang menulis ke sini; upload Filepicker memakai `public/files/uploads/`. Kandidat hapus. |
+
+Keduanya kandidat untuk dikeluarkan dari cermin kalau repo ini ingin ramping —
+belum dihapus, hanya dicatat.
 
 ### Berkas sisa proyek lain (kandidat bersih-bersih)
 
