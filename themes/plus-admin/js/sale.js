@@ -7,7 +7,7 @@
  *   8   kasir / keranjang penjualan  (sale-form.php)
  *   9   batalkan penjualan (void)    (sale-result.php)
  *   10  typeahead customer           (sale-form.php, pembeli opsional)
- *       transport RawBT + cetakNotaRawbt (sale-result.php & sale-detail.php)
+ *       cetak struk: transport RawBT (RawBtTransport) + cetakNotaRawbt
  *
  * Typeahead merchandise di kasir TIDAK memakai initMerchandiseTypeahead
  * generik seperti di sasana.js, melainkan versi khusus kasir di bawah
@@ -22,7 +22,7 @@
  *   #table-result        — tabel target      #dt-filter / -reset / -body
  *   #dataTables-url      — sasana/sale/getDataDT
  *   .btn-void-sale       — Sale::getDataDT(), punya data-id & data-void-title
- *   .btn-cetak-rawbt     — Sale::getDataDT() & sale-detail.php, data-invoice
+ *   .btn-cetak-rawbt — Sale::getDataDT() & sale-detail.php, data-invoice
  *   #sale-form, #sale-cart, #sale-total, #sale-change, #paid_amount,
  *   #sale-items-hidden, #sale_merchandise_name, #sale_customer_name,
  *   #sale_customer_id
@@ -556,51 +556,56 @@
 	}
 
 	/* ------------------------------------------------------------------
-	 * Cetak struk
+	 * Cetak struk — RawBT (Android) + pratinjau HTML 58mm (desktop)
 	 * ------------------------------------------------------------------ */
 
+	/** Deteksi perangkat Android: hanya di situ aplikasi RawBT bisa dipasang. */
+	function isAndroidDevice() {
+		var ua = navigator.userAgent || '';
+
+		if (/android/i.test(ua)) {
+			return true;
+		}
+
+		if (navigator.userAgentData && /android/i.test(navigator.userAgentData.platform || '')) {
+			return true;
+		}
+
+		// Chromium di Android kadang hanya melaporkan "Linux" + layar sentuh.
+		var hasTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+		return /\blinux\b/i.test(ua) && !/windows|macintosh|cros/i.test(ua) && hasTouch;
+	}
+
 	/**
-	 * Transport RawBT Android
-	 * Sesuai implementasi resmi di public/vendors/rawbt/app.js
+	 * Transport RawBT Android — sama seperti implementasi resmi di
+	 * public/vendors/rawbt/app.js: perintah ESC/POS (base64) dikirim lewat
+	 * intent URI yang ditangani aplikasi ru.a402d.rawbtprinter.
 	 */
 	function RawBtTransport() {
 		this.send = function (base64Data) {
 			var S = '#Intent;scheme=rawbt;';
 			var P = 'package=ru.a402d.rawbtprinter;end;';
-			var textEncoded = 'base64,' + String(base64Data).trim();
-			var intentUrl = 'intent:' + textEncoded + S + P;
 
-			// Cara pemanggilan resmi di public/vendors/rawbt/app.js
-			window.location.href = intentUrl;
+			window.location.href = 'intent:base64,' + String(base64Data).trim() + S + P;
 		};
 		return this;
 	}
 
+	/**
+	 * Cetak nota.
+	 *   Android → ambil perintah ESC/POS dari server, serahkan ke RawBT.
+	 *   Desktop → buka pratinjau struk 58mm; halaman itu memanggil window.print().
+	 */
 	function cetakNotaRawbt(noInvoice) {
 		if (!noInvoice) {
-			if (typeof Swal !== 'undefined') {
-				Swal.fire('Peringatan', 'Nomor invoice tidak ditemukan.', 'warning');
-			} else {
-				alert('Nomor invoice tidak ditemukan.');
-			}
+			notify('warning', 'Nomor invoice tidak ditemukan.');
 			return;
 		}
 
-		var rawbtUrl = baseUrl() + 'sasana/sale/notaRawbt';
+		var notaUrl = baseUrl() + 'sasana/sale/notaRawbt';
+		var htmlPrintUrl = notaUrl + '?no_invoice=' + encodeURIComponent(noInvoice) + '&view=html';
 
-		// Deteksi lingkungan Android Tab / Mobile
-		var isAndroid =
-			/android/i.test(navigator.userAgent) ||
-			(navigator.userAgentData &&
-				/android/i.test(navigator.userAgentData.platform || '')) ||
-			(/linux/i.test(navigator.platform || navigator.userAgent) &&
-				(navigator.maxTouchPoints > 0 || 'ontouchstart' in window));
-
-		// KETIKA DI PC DESKTOP:
-		// Langsung buka jendela layout cetakan ke printer
-		if (!isAndroid) {
-			var htmlPrintUrl =
-				rawbtUrl + '?no_invoice=' + encodeURIComponent(noInvoice) + '&view=html';
+		if (!isAndroidDevice()) {
 			var printWin = window.open(
 				htmlPrintUrl,
 				'PrintStruk',
@@ -612,8 +617,6 @@
 			return;
 		}
 
-		// KETIKA DI ANDROID TAB:
-		// Hubungkan dan cetak langsung ke printer Bluetooth via RawBtTransport
 		if (typeof Swal !== 'undefined') {
 			Swal.fire({
 				title: 'Menyiapkan Struk...',
@@ -627,7 +630,7 @@
 
 		$.ajax({
 			type: 'GET',
-			url: rawbtUrl,
+			url: notaUrl,
 			data: { no_invoice: noInvoice },
 			dataType: 'json',
 			cache: false,
@@ -637,35 +640,22 @@
 				}
 
 				if (!response.status) {
-					if (typeof Swal !== 'undefined') {
-						Swal.fire('Gagal!', response.message, 'error');
-					} else {
-						alert(response.message);
-					}
+					notify('error', response.message);
 					return;
 				}
 
-				// Cetak ke printer bluetooth via RawBtTransport persis seperti public/vendors/rawbt
-				var transport = new RawBtTransport();
-				transport.send(response.data);
+				new RawBtTransport().send(response.data);
 			},
 			error: function (xhr) {
 				if (typeof Swal !== 'undefined') {
-					Swal.fire(
-						'Error!',
-						'Terjadi kesalahan saat menyiapkan nota untuk printer (' +
-							xhr.status +
-							').',
-						'error'
-					);
-				} else {
-					alert('Terjadi kesalahan saat menyiapkan nota untuk printer.');
+					Swal.close();
 				}
+				notify('error', 'Terjadi kesalahan saat menyiapkan nota untuk printer (' + xhr.status + ').');
 			}
 		});
 	}
 
-	// Ekspos ke window agar pemanggilan onclick="cetakNotaRawbt(...)" berfungsi
+	// Dipanggil juga dari atribut onclick= di view, jadi harus ada di window.
 	window.RawBtTransport = RawBtTransport;
 	window.cetakNotaRawbt = cetakNotaRawbt;
 
