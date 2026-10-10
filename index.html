@@ -4,456 +4,645 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Komando Apps - Assets CDN Documentation</title>
+    <meta name="description" content="Dokumentasi aset statis (vendors, themes, images) untuk aplikasi Sasana Gym — sistem manajemen membership, check-in, dan penjualan gym.">
+    <title>Sasana Gym Assets &mdash; Dokumentasi CDN &amp; Struktur</title>
 
     <!--
-    =================================================================================
-    CDN CONFIGURATION NOTES
-    =================================================================================
+    =============================================================================
+    SASANA GYM ASSETS — Dokumentasi CDN
+    =============================================================================
 
-    Project ini menggunakan beberapa CDN untuk delivery assets. Berikut perbandingan
-    dukungan Content Security Policy (CSP) dari masing-masing CDN:
+    Repo ini adalah CERMIN dari `sasana-apps/public/`. Aturan mainnya satu:
+    ubah dulu di `sasana-apps/public/`, baru salin ke sini — bukan sebaliknya.
 
-    1. JSDELIVR (v CSP SUPPORT)
-       - URL: https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997
-       - Status: MENDUKUNG CSP dengan baik
-       - Keunggulan:
-         * Kompatibel dengan strict CSP headers
-         * Cache optimal dengan versioning
-         * Fallback otomatis ke multiple mirrors
-       - Rekomendasi: Gunakan untuk production dengan CSP aktif
+    Pilihan CDN (ringkas; detail di readme.md):
 
-    2. GH-Pages (x NOT SUPPORT CSP)
-       - URL: https://komandoland.github.io/assets/vendors/jquery/jquery.min.js
-       - Status: TIDAK mendukung CSP
-       - Keterbatasan:
-         * Blocked oleh strict CSP policies
-         * Tidak ada integrity hash support
-       - Penggunaan: Hanya untuk development/testing tanpa CSP
+      1. jsDelivr      ✅ CSP    cdn.jsdelivr.net/gh/SasanaGym/assets@<versi>/...
+                                 (primary — production)
+      2. GitHub Pages  ❌ CSP    sasanagym.github.io/assets/...
+                                 (development/testing saja)
+      3. StaticDelivr  ✅ CSP    cdn.staticdelivr.com/gh/SasanaGym/assets/<versi>/...
+                                 (alternatif production, ada auto-fallback)
 
-    3. STATICDELIVR (v CSP SUPPORT)
-       - URL: https://cdn.staticdelivr.com/gh/KomandoLand/assets/1.0.0/vendors/jquery/jquery.min.js
-       - Status: MENDUKUNG CSP dengan domain konsisten
-       - Keunggulan:
-         * CSP Compatible - dapat di-whitelist dalam CSP policies
-         * Multi-CDN Architecture - beberapa CDN untuk availability tinggi
-         * WordPress Integration - plugin otomatis untuk rewrite URL aset
-         * Auto Fallback System - fallback otomatis ke server asal jika gagal
-         * Consistent Domain - semua aset melalui domain yang sama
-       - Penggunaan: Production alternative dengan CSP support dan fallback capability
-
-    =================================================================================
-    REKOMENDASI IMPLEMENTASI
-    =================================================================================
-
-    Untuk Production (dengan CSP):
-    - Gunakan JSDELIVR sebagai primary CDN
-    - Set CSP headers: script-src 'self' https://cdn.jsdelivr.net
-
-    Untuk Development (tanpa CSP):
-    - Bisa menggunakan GH-Pages untuk testing lokal tanpa CSP
-
-    Untuk Production Alternative (dengan CSP):
-    - StaticDelivr sebagai alternatif dengan Multi-CDN Architecture dan Auto Fallback System
-
-    =================================================================================
-    -->
-
-    <!-- PRIMARY CDN (CSP-Compatible) - PRODUCTION USE -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997"></script>
-    -->
-
-    <!-- ALTERNATIVE CDN #1 (Non-CSP) - DEVELOPMENT ONLY -->
-    <!--
-    <script src="https://komandoland.github.io/assets/vendors/jquery/jquery.min.js"></script>
-    -->
-
-    <!-- ALTERNATIVE CDN #2 (CSP-Compatible) - PRODUCTION FALLBACK -->
-    <!--
-    <script src="https://cdn.staticdelivr.com/gh/KomandoLand/assets/1.0.0/vendors/jquery/jquery.min.js"></script>
+    Catatan penting:
+      - jsDelivr & StaticDelivr membaca versi dari GIT TAG. Saat ini repo
+        BELUM punya tag — buat dulu: git tag -a 0.0.1 -m "..." && git push origin 0.0.1
+      - `app/Config/App.php` di sasana-apps masih menunjuk repo lama
+        (vizitripdotcom/assets@0.1.42). Arahkan `$cloudUrl` ke repo ini agar
+        benar-benar terpakai.
+      - Resolusi aset di aplikasi lewat `asset_url()`
+        (app/Helpers/asset_helper.php): lokal dulu, CDN sebagai fallback.
+    =============================================================================
     -->
 
     <style>
-        /* Palet Komando: army green, navy, slate, charcoal */
+        /* ---------------------------------------------------------------------
+           Palet Sasana Gym — brand biru. Sumber: project-theme.css (gradient body)
+           dan themes/plus-admin/assets/css/style.css (--bs-primary).
+           --------------------------------------------------------------------- */
         :root {
-            --komando-green: #4b5320;
-            --komando-navy: #373d53;
-            --komando-slate: #8e96a3;
-            --komando-charcoal: #1a1a1a;
+            --sasana-blue:        #0950dc;
+            --sasana-blue-mid:    #0958d2;
+            --sasana-blue-end:    #096ed2;
+            --sasana-primary:     #0033c4;  /* PWA theme_color / --bs-primary */
+            --sasana-footer:      #252525;
+
+            --sasana-ink:         #1f2430;
+            --sasana-muted:       #6b7280;
+            --sasana-border:      #d9dee6;
+            --sasana-surface:     #ffffff;
+            --sasana-canvas:      #f4f6fa;
+            --sasana-code-bg:     #101828;
+
+            --radius-lg:          14px;
+            --radius-md:          10px;
+            --radius-sm:          6px;
+            --shadow-card:        0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .06);
+            --shadow-soft:        0 1px 2px rgba(16, 24, 40, .05);
+
+            --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f1f2f4;
-            color: var(--komando-charcoal);
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--komando-green) 0%, var(--komando-navy) 100%);
-            color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(26, 26, 26, 0.2);
-        }
-
-        .header h1 {
             margin: 0;
-            font-size: 2.5em;
+            padding: 0 20px 60px;
+            font-family: var(--font-ui);
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--sasana-ink);
+            background:
+                linear-gradient(180deg, rgba(9, 80, 220, .07) 0%, rgba(9, 110, 210, 0) 320px),
+                var(--sasana-canvas);
         }
 
-        .header p {
-            margin: 5px 0 0;
-            color: rgba(255, 255, 255, 0.85);
+        .wrap {
+            max-width: 1080px;
+            margin: 0 auto;
         }
 
-        .cdn-info {
-            background: #ffffff;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(26, 26, 26, 0.1);
+        /* ---------- Header ------------------------------------------------- */
+        .hero {
+            margin: 0 -20px 32px;
+            padding: 48px 20px 44px;
+            background: linear-gradient(135deg, var(--sasana-blue) 0%, var(--sasana-blue-mid) 50%, var(--sasana-blue-end) 100%);
+            color: #fff;
         }
 
-        .cdn-info h2 {
-            margin-top: 0;
-            color: var(--komando-charcoal);
-            border-bottom: 2px solid var(--komando-green);
-            padding-bottom: 10px;
+        .hero-inner {
+            max-width: 1080px;
+            margin: 0 auto;
         }
 
-        .cdn-option {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 15px 0;
-            border-left: 4px solid var(--komando-slate);
-            border-radius: 4px;
+        .hero .eyebrow {
+            margin: 0 0 10px;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .72);
         }
 
-        .cdn-option.support {
-            border-left-color: var(--komando-green);
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            line-height: 1.2;
+            letter-spacing: -.02em;
         }
 
-        .cdn-option.no-support {
-            border-left-color: var(--komando-slate);
+        .hero p {
+            margin: 12px 0 0;
+            max-width: 62ch;
+            color: rgba(255, 255, 255, .86);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-
-        .badge.success {
-            background-color: var(--komando-green);
-            color: #ffffff;
-        }
-
-        .badge.danger {
-            background-color: var(--komando-slate);
-            color: #ffffff;
-        }
-
-        .url-box {
-            background: var(--komando-charcoal);
-            color: #f1f2f4;
-            padding: 12px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            word-break: break-all;
-            white-space: pre-wrap;
-            margin-top: 10px;
-            overflow-x: auto;
-        }
-
-        .recommendation {
-            background: rgba(142, 150, 163, 0.15);
-            border: 1px solid var(--komando-slate);
-            border-left: 4px solid var(--komando-green);
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .recommendation strong {
-            color: var(--komando-green);
-        }
-
-        .palette {
+        .hero .meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: 999px;
+            font-size: .8rem;
+            font-family: var(--font-mono);
+            color: #fff;
+        }
+
+        /* ---------- Kartu section ------------------------------------------ */
+        .card {
+            background: var(--sasana-surface);
+            border: 1px solid var(--sasana-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 28px 30px;
+            margin-bottom: 24px;
+        }
+
+        .card > h2 {
+            margin: 0 0 6px;
+            font-size: 1.25rem;
+            letter-spacing: -.01em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card > h2 .num {
+            flex: 0 0 auto;
+            font-family: var(--font-mono);
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--sasana-blue);
+            background: rgba(9, 80, 220, .1);
+            border-radius: var(--radius-sm);
+            padding: 3px 8px;
+        }
+
+        .card > .lede {
+            margin: 0 0 22px;
+            color: var(--sasana-muted);
+            font-size: .95rem;
+        }
+
+        h3 {
+            margin: 26px 0 10px;
+            font-size: 1.02rem;
+        }
+
+        p { margin: 0 0 12px; }
+
+        a { color: var(--sasana-blue); }
+
+        ul, ol { margin: 0 0 12px; padding-left: 22px; }
+        li { margin-bottom: 5px; }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: .86em;
+            background: rgba(9, 80, 220, .08);
+            border-radius: 4px;
+            padding: 2px 6px;
+            word-break: break-word;
+        }
+
+        pre {
+            margin: 12px 0 0;
+            padding: 14px 16px;
+            background: var(--sasana-code-bg);
+            color: #e6edf7;
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: .82rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        /* ---------- Blok CDN ------------------------------------------------- */
+        .cdn {
+            border: 1px solid var(--sasana-border);
+            border-left: 4px solid var(--sasana-muted);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+
+        .cdn.is-ok   { border-left-color: var(--sasana-blue); }
+        .cdn.is-warn { border-left-color: #d97706; }
+
+        .cdn > header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cdn > header h3 { margin: 0; }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .tag.ok   { background: rgba(9, 80, 220, .12); color: var(--sasana-blue); }
+        .tag.warn { background: rgba(217, 119, 6, .14); color: #92400e; }
+
+        /* ---------- Tabel ---------------------------------------------------- */
+        .table-scroll { overflow-x: auto; margin-top: 4px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+
+        th, td {
+            text-align: left;
+            vertical-align: top;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--sasana-border);
+        }
+
+        thead th {
+            background: rgba(9, 80, 220, .06);
+            font-size: .78rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--sasana-muted);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        td code { background: rgba(16, 24, 40, .06); }
+
+        /* ---------- Palet warna ---------------------------------------------- */
+        .swatches {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 6px;
         }
 
         .swatch {
-            flex: 1 1 180px;
-            border-radius: 6px;
+            border: 1px solid var(--sasana-border);
+            border-radius: var(--radius-md);
             overflow: hidden;
-            border: 1px solid rgba(142, 150, 163, 0.4);
+            box-shadow: var(--shadow-soft);
         }
 
-        .swatch .chip {
-            height: 64px;
+        .swatch .chip { height: 72px; }
+
+        .swatch .body { padding: 10px 12px; font-size: .85rem; }
+        .swatch .body strong { display: block; }
+        .swatch .body span { color: var(--sasana-muted); }
+
+        /* ---------- Callout --------------------------------------------------- */
+        .callout {
+            display: flex;
+            gap: 12px;
+            background: rgba(9, 80, 220, .06);
+            border: 1px solid rgba(9, 80, 220, .22);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-top: 18px;
+            font-size: .92rem;
         }
 
-        .swatch .meta {
-            background: #ffffff;
-            padding: 8px 10px;
-            font-size: 0.85em;
+        .callout.warn {
+            background: rgba(217, 119, 6, .08);
+            border-color: rgba(217, 119, 6, .3);
         }
 
-        .swatch .meta code {
-            color: var(--komando-navy);
-        }
+        .callout .icon { flex: 0 0 auto; font-size: 1.05rem; line-height: 1.5; }
+        .callout p:last-child { margin-bottom: 0; }
 
-        table.struct {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table.struct th,
-        table.struct td {
-            border-bottom: 1px solid rgba(142, 150, 163, 0.3);
-            padding: 8px 10px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        table.struct th {
-            background: rgba(142, 150, 163, 0.15);
-            color: var(--komando-charcoal);
-        }
-
+        /* ---------- Footer ----------------------------------------------------- */
         footer {
-            text-align: center;
             margin-top: 40px;
-            color: var(--komando-slate);
-            font-size: 0.9em;
+            padding-top: 20px;
+            border-top: 1px solid var(--sasana-border);
+            color: var(--sasana-muted);
+            font-size: .85rem;
+            text-align: center;
         }
+
+        footer code { background: rgba(16, 24, 40, .06); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎖️ Komando Apps</h1>
-        <p>Assets CDN - Dokumentasi &amp; Konfigurasi</p>
-    </div>
 
-    <div class="cdn-info">
-        <h2>📦 Pilihan CDN untuk Assets</h2>
-        <p>Dokumentasi lengkap tentang Content Delivery Network (CDN) yang tersedia untuk project Komando Apps, termasuk informasi dukungan Content Security Policy (CSP). Repository sumber: <code>KomandoLand/assets</code>.</p>
-
-        <!-- Option 1: JSDELIVR -->
-        <div class="cdn-option support">
-            <h3>
-                1. jsDelivr
-                <span class="badge success">✓ CSP SUPPORT</span>
-            </h3>
-            <p><strong>Status:</strong> MENDUKUNG Content Security Policy</p>
-            <p><strong>Rekomendasi:</strong> Primary CDN untuk production</p>
-
-            <p><strong>Keunggulan:</strong></p>
-            <ul>
-                <li>Kompatibel penuh dengan strict CSP headers</li>
-                <li>Sistem cache optimal dengan versioning</li>
-                <li>Fallback otomatis ke multiple mirrors</li>
-                <li>CORS headers yang tepat</li>
-                <li>Support Subresource Integrity (SRI)</li>
-            </ul>
-
-            <p><strong>URL Pattern:</strong></p>
-            <div class="url-box">https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997</div>
-
-            <p><strong>Contoh CSP Header:</strong></p>
-            <div class="url-box">Content-Security-Policy: script-src 'self' https://cdn.jsdelivr.net</div>
-        </div>
-
-        <!-- Option 2: GitHub Pages -->
-        <div class="cdn-option no-support">
-            <h3>
-                2. GitHub Pages
-                <span class="badge danger">✗ NOT SUPPORT CSP</span>
-            </h3>
-            <p><strong>Status:</strong> TIDAK mendukung Content Security Policy</p>
-            <p><strong>Rekomendasi:</strong> Development/testing only</p>
-
-            <p><strong>Keterbatasan:</strong></p>
-            <ul>
-                <li>Akan di-block oleh strict CSP policies</li>
-                <li>Tidak ada integrity hash support</li>
-                <li>CORS headers terbatas</li>
-                <li>Tidak cocok untuk production dengan security ketat</li>
-            </ul>
-
-            <p><strong>URL Pattern:</strong></p>
-            <div class="url-box">https://komandoland.github.io/assets/vendors/jquery/jquery.min.js</div>
-
-            <p><strong>Use Case:</strong> Development lokal, testing tanpa CSP, prototyping</p>
-        </div>
-
-        <!-- Option 3: StaticDelivr -->
-        <div class="cdn-option support">
-            <h3>
-                3. StaticDelivr
-                <span class="badge success">✓ CSP SUPPORT</span>
-            </h3>
-            <p><strong>Status:</strong> MENDUKUNG Content Security Policy</p>
-            <p><strong>Rekomendasi:</strong> Production alternative dengan CSP support</p>
-
-            <p><strong>Keunggulan:</strong></p>
-            <ul>
-                <li>CSP Compatible - dapat di-whitelist dalam CSP policies</li>
-                <li>Multi-CDN Architecture - beberapa CDN untuk availability tinggi</li>
-                <li>Consistent Domain - semua aset melalui domain yang sama</li>
-                <li>WordPress Integration - plugin otomatis untuk rewrite URL aset</li>
-                <li>Auto Fallback System - fallback otomatis ke server asal jika gagal</li>
-            </ul>
-
-            <p><strong>URL Pattern:</strong></p>
-            <div class="url-box">https://cdn.staticdelivr.com/gh/KomandoLand/assets/1.0.0/vendors/jquery/jquery.min.js</div>
-
-            <p><strong>Use Case:</strong> Production alternative dengan CSP support dan fallback capability</p>
-
-            <p><strong>Contoh CSP Header:</strong></p>
-            <div class="url-box">Content-Security-Policy: script-src 'self' https://cdn.staticdelivr.com</div>
-        </div>
-
-        <!-- Recommendation Box -->
-        <div class="recommendation">
-            <strong>💡 Rekomendasi Implementasi:</strong>
-            <ul>
-                <li><strong>Production Environment:</strong> Gunakan jsDelivr sebagai primary CDN. Pastikan CSP headers di-set dengan benar di server.</li>
-                <li><strong>Development Environment:</strong> Bisa menggunakan GitHub Pages untuk kemudahan testing tanpa CSP.</li>
-                <li><strong>Production Alternative:</strong> Gunakan StaticDelivr jika membutuhkan Multi-CDN Architecture, WordPress Integration, atau Auto Fallback System.</li>
-                <li><strong>Staging Environment:</strong> Gunakan jsDelivr untuk simulasi kondisi production yang akurat.</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="cdn-info">
-        <h2>📁 Isi Repository</h2>
-        <table class="struct">
-            <thead>
-                <tr>
-                    <th>Direktori</th>
-                    <th>Isi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>vendors/</code></td>
-                    <td>31 library pihak ketiga: jQuery, Bootstrap, Bootswatch, Font Awesome, Bootstrap Icons, Chart.js, ApexCharts, ECharts, DataTables, Select2, SweetAlert2, TinyMCE, Flatpickr, Dropzone, FullCalendar, dll.</td>
-                </tr>
-                <tr>
-                    <td><code>themes/modern/builtin/css/</code></td>
-                    <td><code>site.css</code> (layout utama), <code>bootstrap-custom.css</code> (override komponen), <code>dark-theme.css</code> (mode gelap), <code>login.css</code>, <code>color-schemes/</code>, <code>fonts/</code></td>
-                </tr>
-                <tr>
-                    <td><code>themes/modern/css/</code></td>
-                    <td>CSS per-halaman: <code>dashboard.css</code>, <code>gallery.css</code>, <code>artikel.css</code>, <code>filepicker.css</code>, <code>register.css</code>, <code>tanpalogin.css</code></td>
-                </tr>
-                <tr>
-                    <td><code>themes/modern/js/</code></td>
-                    <td>JS per-halaman: <code>app.js</code>, <code>dashboard.js</code>, <code>chartjs.js</code>, <code>data-tables.js</code>, <code>filepicker.js</code>, dll.</td>
-                </tr>
-                <tr>
-                    <td><code>images/</code></td>
-                    <td>Logo aplikasi, avatar default, gambar upload default (produk, pelanggan, user)</td>
-                </tr>
-                <tr>
-                    <td><code>icons/</code></td>
-                    <td>Icon set PWA 72px - 512px, apple-touch-icon, dan <code>icon-base.svg</code></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="cdn-info">
-        <h2>🎨 Palet Warna Tema</h2>
-        <p>Seluruh komponen tema (kartu dashboard, tombol, chart, sidebar, badge) mengacu pada empat warna dasar berikut:</p>
-
-        <div class="palette">
-            <div class="swatch">
-                <div class="chip" style="background:#4b5320"></div>
-                <div class="meta"><strong>Army Green</strong><br><code>#4b5320</code><br>Primer: header, tombol utama</div>
-            </div>
-            <div class="swatch">
-                <div class="chip" style="background:#373d53"></div>
-                <div class="meta"><strong>Navy</strong><br><code>#373d53</code><br>Sekunder: sidebar, kartu gelap</div>
-            </div>
-            <div class="swatch">
-                <div class="chip" style="background:#8e96a3"></div>
-                <div class="meta"><strong>Slate</strong><br><code>#8e96a3</code><br>Netral terang: muted, border</div>
-            </div>
-            <div class="swatch">
-                <div class="chip" style="background:#1a1a1a"></div>
-                <div class="meta"><strong>Charcoal</strong><br><code>#1a1a1a</code><br>Netral gelap: body, teks utama</div>
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="eyebrow">Sasana Gym &middot; Assets CDN</p>
+            <h1>Dokumentasi Aset Statis</h1>
+            <p>
+                Kumpulan library pihak ketiga, tema, dan gambar untuk aplikasi
+                <strong>sasana-apps</strong> (CodeIgniter 4) &mdash; sistem manajemen
+                membership, check-in, dan penjualan gym.
+            </p>
+            <div class="meta">
+                <span class="pill">SasanaGym/assets</span>
+                <span class="pill">branch: main</span>
+                <span class="pill">32 vendors &middot; 286 berkas tema &middot; 90 gambar</span>
             </div>
         </div>
+    </header>
 
-        <p style="margin-top:20px"><strong>Definisi palet ada di:</strong></p>
-        <ul>
-            <li><code>themes/modern/builtin/css/site.css</code> &mdash; CSS variable <code>--primary-color</code></li>
-            <li><code>themes/modern/builtin/css/color-schemes/army-green.css</code> &mdash; header, sidebar, latar logo</li>
-            <li><code>themes/modern/css/dashboard.css</code> &mdash; kartu statistik &amp; alert dashboard</li>
-            <li><code>themes/modern/js/dashboard.js</code> &mdash; <code>window.KOMANDO_PALETTE</code> untuk warna chart</li>
-        </ul>
-    </div>
+    <div class="wrap">
 
-    <div class="cdn-info">
-        <h2>⚙️ Contoh Implementasi</h2>
+        <!-- ================= 1. Pilihan CDN ================= -->
+        <section class="card">
+            <h2><span class="num">01</span> Pilihan CDN</h2>
+            <p class="lede">
+                Tiga jalur delivery aset. Pilih berdasarkan kebutuhan Content Security
+                Policy (CSP) dan environment yang dipakai.
+            </p>
 
-        <h3>Cara 1: Pilih CDN Sesuai Environment (Recommended)</h3>
-        <div class="url-box">&lt;!-- Production: CSP-Compatible --&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997"&gt;&lt;/script&gt;
+            <div class="cdn is-ok">
+                <header>
+                    <h3>jsDelivr</h3>
+                    <span class="tag ok">CSP didukung</span>
+                    <span class="tag ok">Direkomendasikan</span>
+                </header>
+                <p>
+                    Global CDN dengan banyak mirror dan auto-fallback antar-mirror.
+                    Cache optimal karena versi dibaca dari git tag, plus dukungan
+                    Subresource Integrity (SRI) dan CORS header yang tepat.
+                </p>
+                <pre><code>https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/vendors/jquery/jquery.min.js</code></pre>
+                <p style="margin-top:12px"><strong>Use case:</strong> production dengan kebijakan keamanan ketat.</p>
+            </div>
 
-&lt;!-- Development: Non-CSP --&gt;
-&lt;!-- &lt;script src="https://komandoland.github.io/assets/vendors/jquery/jquery.min.js"&gt;&lt;/script&gt; --&gt;</div>
+            <div class="cdn is-warn">
+                <header>
+                    <h3>GitHub Pages</h3>
+                    <span class="tag warn">Tanpa CSP</span>
+                </header>
+                <p>
+                    Tidak ada nonce/hash dan CORS terbatas, sehingga akan diblokir oleh
+                    kebijakan CSP yang ketat. Deployment otomatis lewat
+                    <code>.github/workflows/static.yml</code> (push ke <code>main</code>
+                    &rarr; seluruh isi repo diunggah sebagai artefak Pages).
+                </p>
+                <pre><code>https://sasanagym.github.io/assets/vendors/jquery/jquery.min.js</code></pre>
+                <p style="margin-top:12px"><strong>Use case:</strong> development lokal, testing, dan prototyping tanpa requirement CSP.</p>
+            </div>
 
-        <h3>Cara 2: Fallback Chain</h3>
-        <div class="url-box">&lt;script src="https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997"&gt;&lt;/script&gt;
+            <div class="cdn is-ok">
+                <header>
+                    <h3>StaticDelivr</h3>
+                    <span class="tag ok">CSP didukung</span>
+                </header>
+                <p>
+                    Domain konsisten sehingga mudah di-whitelist, dan otomatis
+                    fallback ke server asal bila CDN gagal atau terblokir.
+                </p>
+                <pre><code>https://cdn.staticdelivr.com/gh/SasanaGym/assets/&lt;versi&gt;/vendors/jquery/jquery.min.js</code></pre>
+                <p style="margin-top:12px"><strong>Use case:</strong> alternatif production dengan kemampuan fallback.</p>
+            </div>
+
+            <h3>Konfigurasi CSP</h3>
+            <p>Whitelist domain jsDelivr agar aset bisa dimuat saat CSP aktif.</p>
+            <pre><code># Apache (.htaccess)
+Header set Content-Security-Policy "script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://cdn.jsdelivr.net;"
+
+# Nginx
+add_header Content-Security-Policy "script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://cdn.jsdelivr.net;" always;</code></pre>
+        </section>
+
+        <!-- ================= 2. Struktur ================= -->
+        <section class="card">
+            <h2><span class="num">02</span> Struktur Direktori</h2>
+            <p class="lede">
+                Isi repository beserta statusnya terhadap <code>sasana-apps/public/</code>.
+            </p>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Direktori</th>
+                            <th>Jumlah</th>
+                            <th>Isi</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>vendors/</code></td>
+                            <td>32</td>
+                            <td>jQuery, Bootstrap 5 + Bootswatch, DataTables, Select2, SweetAlert2, TinyMCE, Chart.js, ECharts, Font Awesome, Bootstrap Icons, FullCalendar, Dropzone, Flatpickr, rawbt/rawthermal (cetak struk) &mdash; dst.</td>
+                            <td>identik</td>
+                        </tr>
+                        <tr>
+                            <td><code>themes/plus-admin/</code></td>
+                            <td>133 berkas</td>
+                            <td><strong>Tema aktif</strong> (BootstrapDash <em>Plus Admin</em>): <code>assets/css/style.css</code>, ikon MDI/Themify/simple-line, JS layout, dan JS per-modul sasana (<code>checkin.js</code>, <code>customer.js</code>, <code>package.js</code>, <code>merchandise.js</code>, <code>purchase.js</code>, <code>sale.js</code>, <code>reminder.js</code>, <code>dashboard.js</code>, <code>shell.js</code>, <code>csrf.js</code>).</td>
+                            <td>identik</td>
+                        </tr>
+                        <tr>
+                            <td><code>themes/modern/</code></td>
+                            <td>153 berkas</td>
+                            <td><strong>Tema lama / fallback</strong>: layout admin, halaman login &amp; registrasi, <code>builtin/</code> (site.css, dark-theme.css, color-schemes, fonts), serta view bersama modul (<code>sasana.css</code>, <code>sasana.js</code>).</td>
+                            <td>identik</td>
+                        </tr>
+                        <tr>
+                            <td><code>images/</code></td>
+                            <td>90 berkas</td>
+                            <td>Logo aplikasi, logo login, favicon, avatar, ikon filepicker, dan gambar contoh (<code>foto/</code>, <code>pelanggan/</code>, <code>produk/</code>, <code>user/</code>).</td>
+                            <td>identik</td>
+                        </tr>
+                        <tr>
+                            <td><code>icons/</code></td>
+                            <td>&mdash;</td>
+                            <td>Set ikon PWA 72&ndash;512 px, maskable, dan apple-touch-icon yang dirujuk <code>public/manifest.json</code>.</td>
+                            <td><strong>belum ada</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout warn">
+                <span class="icon">&#9888;&#65039;</span>
+                <div>
+                    <p>
+                        <strong>Catatan aset:</strong> folder <code>icons/</code> belum disalin ke repo ini.
+                        Kalau PWA harus tetap jalan saat ikon lokal hilang, folder tersebut perlu
+                        disalin dari <code>sasana-apps/public/icons/</code>.
+                    </p>
+                    <p>
+                        <code>images/</code> juga masih memuat sisa template lain yang tidak dirujuk
+                        aplikasi (<code>logo_hb.png</code>, <code>logo_only_hb.png</code> + <code>.xcf</code>,
+                        <code>logo_login_halu.png</code>, <code>purple.png</code>, <code>bg_login.jpg</code>,
+                        <code>default_avatar.png</code>). Statusnya <em>kandidat bersih-bersih</em> &mdash;
+                        belum dihapus, karena bisa masih dipakai untuk keperluan desain.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 3. Palet ================= -->
+        <section class="card">
+            <h2><span class="num">03</span> Palet Warna Tema</h2>
+            <p class="lede">
+                Sasana Gym memakai brand biru. Empat warna dasar berikut dipakai
+                konsisten oleh halaman auth, tema aktif, dan manifest PWA.
+            </p>
+
+            <div class="swatches">
+                <div class="swatch">
+                    <div class="chip" style="background:#0950dc"></div>
+                    <div class="body">
+                        <strong>Brand Blue</strong>
+                        <span><code>#0950dc</code><br>Awal gradient body, aksen utama</span>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="chip" style="background:#0958d2"></div>
+                    <div class="body">
+                        <strong>Brand Blue (mid)</strong>
+                        <span><code>#0958d2</code><br>Titik tengah gradient body</span>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="chip" style="background:#096ed2"></div>
+                    <div class="body">
+                        <strong>Brand Blue (end)</strong>
+                        <span><code>#096ed2</code><br>Akhir gradient body</span>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="chip" style="background:#0033c4"></div>
+                    <div class="body">
+                        <strong>PWA Theme</strong>
+                        <span><code>#0033c4</code><br><code>--bs-primary</code> / <code>theme_color</code></span>
+                    </div>
+                </div>
+                <div class="swatch">
+                    <div class="chip" style="background:#252525"></div>
+                    <div class="body">
+                        <strong>Footer</strong>
+                        <span><code>#252525</code><br>Latar footer</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Lokasi definisi</h3>
+            <ul>
+                <li><code>themes/modern/builtin/css/project-theme.css</code> &mdash; gradient body (berlaku light &amp; dark)</li>
+                <li><code>themes/modern/builtin/css/color-schemes/</code> &mdash; skema warna yang bisa diganti dari halaman setting layout (<code>army-green</code>, <code>light-sidebar</code>, <code>dark-sidebar</code>, <code>light-logo-background</code>, <code>dark-logo-background</code>)</li>
+                <li><code>themes/plus-admin/assets/css/style.css</code> &mdash; variabel Bootstrap tema aktif (<code>--bs-primary: #0033c4</code>)</li>
+            </ul>
+        </section>
+
+        <!-- ================= 4. Cara Penggunaan ================= -->
+        <section class="card">
+            <h2><span class="num">04</span> Cara Penggunaan</h2>
+            <p class="lede">
+                Contoh pemuatan aset, fallback chain, dan integrasi dengan aplikasi.
+            </p>
+
+            <h3>Cara 1 &mdash; jsDelivr (production)</h3>
+            <pre><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/vendors/bootstrap/css/bootstrap.min.css"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/themes/plus-admin/assets/css/style.css"&gt;
+
+&lt;script src="https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/vendors/jquery/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/vendors/bootstrap/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;</code></pre>
+
+            <h3>Cara 2 &mdash; Fallback chain</h3>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/SasanaGym/assets@&lt;versi&gt;/vendors/jquery/jquery.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-    // Fallback jika primary CDN gagal
     if (typeof jQuery === 'undefined') {
-        document.write('&lt;script src="https://komandoland.github.io/assets/vendors/jquery/jquery.min.js"&gt;&lt;\/script&gt;');
+        document.write('&lt;script src="https://sasanagym.github.io/assets/vendors/jquery/jquery.min.js"&gt;&lt;\/script&gt;');
     }
-&lt;/script&gt;</div>
+&lt;/script&gt;</code></pre>
 
-        <h3>Cara 3: Integrasi Komando Apps (CodeIgniter)</h3>
-        <p><code>app/Views/themes/modern/header.php</code> memuat assets dari CDN hanya ketika <code>ENVIRONMENT !== 'development'</code>, memakai pola <strong>raw.githack</strong> dengan commit SHA yang di-pin:</p>
-        <div class="url-box">&lt;link rel="stylesheet" href="https://rawcdn.githack.com/&lt;owner&gt;/assets/&lt;commit-sha&gt;/themes/modern/builtin/css/site.css?r=&lt;?=time()?&gt;"/&gt;</div>
-        <div class="recommendation">
-            <strong>⚠️ Perhatian:</strong> karena SHA di-pin, perubahan yang sudah di-push ke repository <em>belum otomatis tayang</em>. Update SHA di <code>header.php</code> setelah push, atau migrasikan ke jsDelivr dengan tag versi agar cukup menaikkan nomor versi saja.
-        </div>
+            <h3>Cara 3 &mdash; Integrasi dengan sasana-apps</h3>
+            <p>
+                Aplikasi meresolusi aset lewat helper <code>asset_url()</code>
+                (<code>app/Helpers/asset_helper.php</code>): kalau berkas ada di
+                <code>public/</code> pakai lokal, kalau tidak baru jatuh ke CDN.
+                Penanda versi memakai <code>filemtime()</code> (<code>?v=...</code>),
+                bukan <code>?r=time()</code>. Base URL diambil dari
+                <code>App::$cloudUrl</code>.
+            </p>
+            <pre><code>&lt;?php // app/Views/themes/modern/header.php ?&gt;
+&lt;script src="&lt;?= asset_url('vendors/jquery/jquery.min.js') ?&gt;"&gt;&lt;/script&gt;</code></pre>
+            <p style="margin-top:12px">
+                Agar repo ini benar-benar terpakai, arahkan <code>$cloudUrl</code> ke sini:
+            </p>
+            <pre><code>// app/Config/App.php
+public const CLOUD_VER = '0.0.1';
+public string $cloudUrl = 'https://cdn.jsdelivr.net/gh/SasanaGym/assets@' . self::CLOUD_VER . '/';</code></pre>
+        </section>
+
+        <!-- ================= 5. Versioning & sinkronisasi ================= -->
+        <section class="card">
+            <h2><span class="num">05</span> Versioning &amp; Sinkronisasi</h2>
+            <p class="lede">
+                Semantic versioning <code>MAJOR.MINOR.PATCH</code>. jsDelivr &amp;
+                StaticDelivr membaca versi dari <strong>git tag</strong>, bukan dari
+                nama branch.
+            </p>
+
+            <div class="callout">
+                <span class="icon">&#127991;&#65039;</span>
+                <div>
+                    <p>
+                        Saat ini repo <strong>belum punya tag</strong>. Buat tag pertama
+                        sebelum memakai URL ber-versi:
+                    </p>
+                </div>
+            </div>
+            <pre><code>git tag -a 0.0.1 -m "Rilis awal aset Sasana Gym"
+git push origin 0.0.1</code></pre>
+            <pre><code>&lt;!-- versi spesifik (disarankan untuk production) --&gt;
+https://cdn.jsdelivr.net/gh/SasanaGym/assets@0.0.1/vendors/jquery/jquery.min.js
+
+&lt;!-- major version --&gt;
+https://cdn.jsdelivr.net/gh/SasanaGym/assets@0/vendors/jquery/jquery.min.js
+
+&lt;!-- latest --&gt;
+https://cdn.jsdelivr.net/gh/SasanaGym/assets@latest/vendors/jquery/jquery.min.js</code></pre>
+
+            <h3>Aturan sinkronisasi</h3>
+            <ol>
+                <li><strong>Ubah dulu di <code>sasana-apps/public/</code></strong>, lalu salin ke sini &mdash; bukan sebaliknya. Kalau tidak, versi lokal dan CDN bisa berbeda dan bug-nya sulit dilacak.</li>
+                <li>Jangan mengubah berkas hanya di repo ini; perubahan akan tertimpa pada sync berikutnya.</li>
+                <li>Naikkan tag versi setelah perubahan yang memengaruhi aplikasi, lalu update <code>CLOUD_VER</code> di <code>sasana-apps/app/Config/App.php</code>.</li>
+            </ol>
+            <pre><code>rsync -a --delete /d/DEV/PHP/sasana-apps/public/vendors/ vendors/
+rsync -a --delete /d/DEV/PHP/sasana-apps/public/themes/  themes/
+rsync -a --delete /d/DEV/PHP/sasana-apps/public/images/  images/</code></pre>
+        </section>
+
+        <!-- ================= 6. Catatan ================= -->
+        <section class="card">
+            <h2><span class="num">06</span> Catatan Penting</h2>
+            <div class="callout warn">
+                <span class="icon">&#9888;&#65039;</span>
+                <div>
+                    <p>
+                        <code>app/Config/App.php</code> di sasana-apps masih menunjuk repo lama:
+                        <code>https://cdn.jsdelivr.net/gh/vizitripdotcom/assets@0.1.42/</code>.
+                        Selama belum diubah, aset dari repo ini tidak akan pernah dimuat.
+                    </p>
+                </div>
+            </div>
+            <ul>
+                <li>Repo ini adalah <strong>cermin</strong> dari <code>sasana-apps/public/</code> &mdash; bukan sumber kebenaran.</li>
+                <li>GitHub Pages perlu diaktifkan di <em>Settings &rarr; Pages</em> (branch <code>main</code>, root) agar URL <code>sasanagym.github.io</code> aktif.</li>
+                <li>Selalu uji kompatibilitas CSP di staging sebelum deploy ke production.</li>
+                <li>Perubahan pada <code>themes/</code> harus sejalan dengan folder <code>public/</code> di repository <code>sasana-apps</code>.</li>
+                <li>Library pihak ketiga di <code>vendors/</code> dan <code>themes/*/assets/vendors/</code> tunduk pada lisensi masing-masing.</li>
+            </ul>
+        </section>
+
+        <footer>
+            Sasana Gym Assets CDN &middot; dokumentasi lengkap ada di <code>readme.md</code>
+        </footer>
+
     </div>
 
-    <div class="cdn-info">
-        <h2>📝 Notes</h2>
-        <ul>
-            <li>Version saat ini: <strong>1.0.0</strong></li>
-            <li>jsDelivr dan StaticDelivr membaca versi dari <strong>git tag</strong> &mdash; buat tag dulu dengan <code>git tag -a 1.0.0 -m "..." &amp;&amp; git push origin 1.0.0</code></li>
-            <li>GitHub Pages perlu diaktifkan di Settings → Pages (branch <code>main</code>, root) agar URL <code>komandoland.github.io</code> aktif</li>
-            <li>Parameter <code>?r=1782870997</code> pada jsDelivr adalah cache buster untuk force refresh</li>
-            <li>Selalu test CSP compatibility di staging sebelum deploy ke production</li>
-            <li>Perubahan pada <code>themes/</code> harus sejalan dengan folder <code>public/</code> di repository <code>komando-apps</code></li>
-        </ul>
-    </div>
-
-    <footer>
-        <p>Komando Apps Assets CDN</p>
-    </footer>
-
-    <!-- Script placeholder - uncomment untuk testing -->
-    <!-- <script src="https://cdn.jsdelivr.net/gh/KomandoLand/assets@1.0.0/vendors/jquery/jquery.min.js?r=1782870997"></script> -->
 </body>
 </html>

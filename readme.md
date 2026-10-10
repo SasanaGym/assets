@@ -244,7 +244,7 @@ Base URL CDN diambil dari `App::$cloudUrl` (`app/Config/App.php`).
 **Agar repo ini terpakai**, `App::$cloudUrl` harus diarahkan ke sini:
 
 ```php
-public const CLOUD_VER = '0.1.0';
+public const CLOUD_VER = '0.0.1';
 public string $cloudUrl = 'https://cdn.jsdelivr.net/gh/SasanaGym/assets@' . self::CLOUD_VER . '/';
 ```
 
@@ -259,13 +259,13 @@ dari **git tag**.
 > ber-versi:
 
 ```bash
-git tag -a 0.1.0 -m "Rilis awal aset Sasana Gym"
-git push origin 0.1.0
+git tag -a 0.0.1 -m "Rilis awal aset Sasana Gym"
+git push origin 0.0.1
 ```
 
 ```html
 <!-- versi spesifik (disarankan untuk production) -->
-https://cdn.jsdelivr.net/gh/SasanaGym/assets@0.1.0/vendors/jquery/jquery.min.js
+https://cdn.jsdelivr.net/gh/SasanaGym/assets@0.0.1/vendors/jquery/jquery.min.js
 <!-- major version -->
 https://cdn.jsdelivr.net/gh/SasanaGym/assets@0/vendors/jquery/jquery.min.js
 <!-- latest -->
