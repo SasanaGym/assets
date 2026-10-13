@@ -49,8 +49,8 @@ penjualan gym.
   `js/pwa-banner.js` (banner PWA), plus `grocery_crud/` dan `uploads/`
   warisan template (lihat [Catatan Aset](#-catatan-aset))
 - `icons/` — set ikon PWA yang dirujuk `public/manifest.json`
-  (`icon-72x72` … `icon-512x512`, `maskable-192/512`,
-  `apple-touch-icon-180x180`)
+  (`icon-72x72` … `icon-256x256`, `icon-384x384`, `icon-512x512`,
+  `maskable-192x192`, `maskable-512x512`, `apple-touch-icon-180x180`)
 
 **Tech Stack:** jQuery · Bootstrap 5 + Bootswatch · Font Awesome & Bootstrap
 Icons · DataTables · Select2 · SweetAlert2 · TinyMCE · Chart.js / ApexCharts /
@@ -66,9 +66,9 @@ Per 2026-10-09, ketiga folder di bawah sudah **identik** dengan aplikasi:
 | Folder | Jumlah | Status vs `sasana-apps/public/` |
 |---|---|---|
 | `vendors/` | 32 direktori | ✅ identik |
-| `themes/` | 286 berkas | ✅ identik |
+| `themes/` | 287 berkas | ✅ identik |
 | `images/` | 90 berkas | ✅ identik |
-| `icons/` | — | ❌ **belum ada di repo ini** (lihat [Catatan Aset](#catatan-aset)) |
+| `icons/` | 12 berkas | ✅ identik |
 
 Aplikasi meresolusi aset lewat helper `app/Helpers/asset_helper.php`
 (`asset_url()`): **kalau berkas ada di `public/`, pakai lokal; kalau tidak, baru
@@ -175,6 +175,15 @@ assets_gym/
 │   ├── pelanggan/                  # foto contoh customer
 │   ├── produk/                     # gambar contoh produk
 │   └── user/                       # avatar user + .htaccess
+├── assets/                        # aset milik aplikasi sendiri
+│   ├── css/pwa-banner.css
+│   ├── js/pwa-banner.js
+│   ├── grocery_crud/              # library GroceryCRUD legacy (lihat Catatan Aset)
+│   └── uploads/                   # sisa template (lihat Catatan Aset)
+├── icons/                         # ikon PWA (manifest.json)
+│   ├── icon-72x72 … icon-256x256, icon-384x384, icon-512x512
+│   ├── maskable-192x192  maskable-512x512
+│   └── apple-touch-icon-180x180
 ├── .github/workflows/static.yml    # deploy ke GitHub Pages
 └── readme.md                       # dokumentasi ini
 ```
