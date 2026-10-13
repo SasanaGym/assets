@@ -1,5 +1,5 @@
 /**
- * reminder.js — halaman Sasana Gym › Reminder Membership.
+ * reminder.js — halaman Bangkok Muaythai › Reminder Membership.
  *
  * Berasal dari branch feat/reminder-membership, yang menambahkan bagian "3c"
  * ke themes/modern/js/sasana.js. Karena sasana.js sudah dipecah per modul di

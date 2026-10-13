@@ -1,5 +1,5 @@
 /**
- * merchandise.js — halaman Sasana Gym › Merchandise.
+ * merchandise.js — halaman Bangkok Muaythai › Stok Barang.
  *
  * Dipecah dari themes/modern/js/sasana.js: bootstrap DataTables (bagian "1")
  * dan bagian "3b. Aktif/nonaktifkan merchandise (soft delete)".

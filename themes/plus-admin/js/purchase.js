@@ -1,5 +1,5 @@
 /**
- * purchase.js — halaman Sasana Gym › Pembelian Paket.
+ * purchase.js — halaman Bangkok Muaythai › Pembelian Paket & Aktivasi.
  *
  * Dipecah dari themes/modern/js/sasana.js, mencakup bagian:
  *   1   bootstrap DataTables            (purchase-result.php)

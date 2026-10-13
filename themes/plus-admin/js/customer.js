@@ -1,5 +1,5 @@
 /**
- * customer.js — halaman Sasana Gym › Customer Gym.
+ * customer.js — halaman Bangkok Muaythai › Customer Gym.
  *
  * Dipecah dari themes/modern/js/sasana.js: bootstrap DataTables (bagian "1")
  * dan aksi hapus (bagian "2. Hapus customer"). View customer-form.php dan

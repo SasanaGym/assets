@@ -1,9 +1,9 @@
 /**
- *	Modul Sasana Gym — sasana.js
+ *	Modul Bangkok Muaythai — sasana.js
  *	Tersisa: utilitas umum, bootstrap DataTables, dan render grafik
  *	(Chart.js) untuk halaman laporan.
  *
- *	Yang masih memuat berkas ini: Fee.php dan Report.php.
+ *	Yang masih memuat berkas ini: Report.php.
  *	Seluruh modul lain sudah punya berkasnya sendiri di
  *	themes/plus-admin/js/ — lihat daftar pemetaan di bawah.
  */
@@ -176,8 +176,8 @@ $(document).ready(function () {
    *
    * Bagian 1 & 1b (DataTables + panel #dt-filter) ikut DISALIN ke tiap
    * berkas modul, jadi salinan di bawah ini sudah tidak dipakai pemuat
-   * mana pun: yang masih memuat berkas ini hanya Fee.php (tanpa tabel) dan
-   * Report.php (hanya grafik). Dibiarkan sampai kedua modul itu dipecah.
+   * mana pun: yang masih memuat berkas ini hanya Report.php (hanya grafik).
+   * Dibiarkan sampai modul itu dipecah.
    * -------------------------------------------------------------------- */
 
 

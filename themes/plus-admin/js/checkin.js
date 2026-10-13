@@ -1,5 +1,5 @@
 /**
- * checkin.js — halaman Sasana Gym › Check-in Peserta.
+ * checkin.js — halaman Bangkok Muaythai › Check-in Peserta.
  *
  * Dipecah dari themes/modern/js/sasana.js (bagian "5. Halaman check-in")
  * supaya Checkin.php hanya memuat kode yang dipakai halamannya: typeahead
@@ -30,12 +30,6 @@
 		} else {
 			alert(title);
 		}
-	}
-
-	// Dipakai baris "Fee Programmer" di kartu check-in, yang untuk sekarang
-	// dinonaktifkan (lihat renderCheckinCard) seperti kolomnya di view.
-	function money(value) {
-		return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
 	}
 
 	function baseUrl() {
@@ -103,11 +97,6 @@
 			' <span class="badge bg-secondary">' + item.package_type + '</span></td></tr>' +
 			'<tr><th>Periode</th><td>' + item.start_date + ' s/d ' + item.end_date + '</td></tr>' +
 			'<tr><th>Sisa Kuota</th><td><strong>' + item.quota_text + '</strong></td></tr>' +
-
-			/* Fee programmer sengaja disembunyikan, sejalan dengan kolom
-			   "Fee Programmer" yang juga dikomentari di views/sasana/checkin.php:
-			   '<tr><th>Fee Programmer</th><td>' + money(item.fee) + '</td></tr>' + */
-
 			'</table>' +
 			'<button type="button" class="btn btn-success btn-lg btn-do-checkin" ' +
 			'data-customer-id="' + item.id + '" ' +
@@ -218,7 +207,9 @@
 			var $btn = $(this);
 			var data = {
 				customer_id: $btn.data('customer-id'),
-				activation_id: $btn.data('activation-id')
+				activation_id: $btn.data('activation-id'),
+				// Trainer opsional — dipilih pada dropdown di atas daftar hasil.
+				trainer_id: $('#checkin-trainer').val() || ''
 			};
 			data[csrfName] = csrfToken();
 

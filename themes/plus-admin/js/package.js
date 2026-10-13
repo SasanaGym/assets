@@ -1,5 +1,5 @@
 /**
- * package.js — halaman Sasana Gym › Paket Membership.
+ * package.js — halaman Bangkok Muaythai › Harga Visit & Paket.
  *
  * Dipecah dari themes/modern/js/sasana.js: bootstrap DataTables (bagian "1")
  * dan bagian "3. Aktif/nonaktifkan paket (soft delete)".

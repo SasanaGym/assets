@@ -1,5 +1,5 @@
 /**
- * sale.js — halaman Sasana Gym › Penjualan Merchandise (kasir).
+ * sale.js — halaman Bangkok Muaythai › Penjualan Barang (kasir).
  *
  * Dipecah dari themes/modern/js/sasana.js, mencakup bagian:
  *   1   bootstrap DataTables         (sale-result.php)

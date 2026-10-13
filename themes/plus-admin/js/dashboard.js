@@ -1,5 +1,5 @@
 /**
- * dashboard.js — grafik halaman Sasana Gym › Dashboard.
+ * dashboard.js — grafik halaman Bangkok Muaythai › Dashboard.
  *
  * Dipecah dari themes/modern/js/sasana.js (bagian "7. Grafik") supaya
  * Dashboard.php hanya memuat kode yang benar-benar dipakai halamannya:
