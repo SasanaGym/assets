@@ -118,6 +118,61 @@
 	}
 
 	/* ------------------------------------------------------------------
+	 * Kirim pesan WhatsApp lewat gateway
+	 * ------------------------------------------------------------------ */
+	function bindSendWa() {
+		$('#table-result').on('click', '.btn-send-wa', function () {
+			var id = $(this).data('id');
+			var name = $(this).data('name') || 'customer';
+			var url = baseUrl() + 'sasana/reminder/sendWa';
+
+			if (typeof Swal === 'undefined') {
+				return;
+			}
+
+			Swal.fire({
+				title: 'Kirim Pengingat WA',
+				html: 'Kirim pesan pengingat perpanjangan ke <strong>' + name + '</strong>?',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonText: 'Ya, kirim',
+				cancelButtonText: 'Batal',
+				buttonsStyling: false,
+				customClass: {
+					confirmButton: 'btn btn-success px-3 me-2',
+					cancelButton: 'btn btn-secondary px-3',
+					popup: 'rounded-3 shadow'
+				}
+			}).then(function (result) {
+				if (!result.isConfirmed) {
+					return;
+				}
+
+				var data = { id: id };
+				data[csrfName] = csrfToken();
+
+				$.ajax({
+					type: 'POST',
+					url: url,
+					dataType: 'json',
+					data: data,
+					success: function (res) {
+						notify(res.status === 'ok' ? 'success' : 'error', res.message);
+						if (res.status === 'ok') {
+							setTimeout(function () {
+								window.location.reload();
+							}, 900);
+						}
+					},
+					error: function () {
+						notify('error', 'Terjadi kesalahan saat mengirim pesan WhatsApp');
+					}
+				});
+			});
+		});
+	}
+
+	/* ------------------------------------------------------------------
 	 * Tandai / batalkan "sudah dihubungi"
 	 *
 	 * Berbeda dari toggle lain, di sini tabel TIDAK cukup di-redraw: kartu
@@ -180,6 +235,7 @@
 
 	$(document).ready(function () {
 		initDataTable();
+		bindSendWa();
 		bindToggleReminded();
 	});
 })();

@@ -16,13 +16,14 @@
  *
  * Bergantung pada (semuanya dimuat partials/scripts.php lebih dulu):
  *   jQuery, DataTables + dataTables.bootstrap5, typeahead.bundle,
- *   Swal (sweetalert2), base_url, csrfName
+ *   Swal (sweetalert2), base_url, csrfName, rawbt.js (SasanaRawBt)
  *
  * Hook dari view/controller:
  *   #table-result       — tabel target          #dt-filter / -reset / -body
  *   #dataTables-url     — sasana/purchase/getDataDT
  *   .btn-activate       — Purchase::getDataDT() & activation-result.php,
  *                         punya data-id, data-customer, data-package
+ *   .btn-cetak-bukti    — Purchase::getDataDT(), punya data-id
  *   #package_id         — select paket; #price_paid & #package-summary ikut terisi
  *   #customer_name      — input typeahead; id masuk ke #customer_id_hidden
  *   sasanaPackageData, sasanaCustomerSearchUrl, sasanaActivateUrl
@@ -166,6 +167,26 @@
 
 	function money(value) {
 		return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
+	}
+
+	/* ------------------------------------------------------------------
+	 * Cetak bukti pembelian paket
+	 * ------------------------------------------------------------------ */
+	function bindPrintBukti() {
+		$('body').on('click', '.btn-cetak-bukti', function () {
+			var id = $(this).data('id');
+			if (!id) {
+				notify('warning', 'Data pembelian tidak ditemukan.');
+				return;
+			}
+
+			SasanaRawBt.print(
+				baseUrl() + 'sasana/purchase/buktiRawbt',
+				{ id: id },
+				'PrintBukti',
+				notify
+			);
+		});
 	}
 
 	/* ------------------------------------------------------------------
@@ -368,6 +389,7 @@
 	$(document).ready(function () {
 		initDataTable();
 		bindFilterPanel();
+		bindPrintBukti();
 		bindActivate();
 		bindPackageSummary();
 
