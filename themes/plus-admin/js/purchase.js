@@ -7,6 +7,7 @@
  *   4   aktivasi membership             (purchase-result.php & activation-result.php)
  *   6   ringkasan paket di form         (purchase-form.php)
  *   10  typeahead customer              (purchase-form.php)
+ *   11  modal tambah customer           (purchase-form.php)
  *
  * TIDAK disalin dari sasana.js (kode mati, lihat laporan pemecahan):
  *   - select2 pada #customer_id: <select> itu sudah dikomentari di
@@ -26,7 +27,9 @@
  *   .btn-cetak-bukti    — Purchase::getDataDT(), punya data-id
  *   #package_id         — select paket; #price_paid & #package-summary ikut terisi
  *   #customer_name      — input typeahead; id masuk ke #customer_id_hidden
- *   sasanaPackageData, sasanaCustomerSearchUrl, sasanaActivateUrl
+ *   #modal-customer-add — modal tambah customer (purchase-form.php); field
+ *                         #new_customer_{name,phone,email}, error #customer-add-error
+ *   sasanaPackageData, sasanaCustomerSearchUrl, sasanaCustomerAddUrl, sasanaActivateUrl
  */
 (function () {
 	'use strict';
@@ -386,12 +389,105 @@
 		});
 	}
 
+	/* ------------------------------------------------------------------
+	 * Modal tambah customer
+	 *
+	 * PWA standalone: tab baru akan melempar user keluar dari app, dan
+	 * berpindah halaman menghapus isian pembelian yang sedang diisi. Karena
+	 * itu customer baru dibuat lewat AJAX di halaman yang sama.
+	 * ------------------------------------------------------------------ */
+	function bindCustomerAddModal() {
+		var $modal = $('#modal-customer-add');
+
+		if (!$modal.length) {
+			return;
+		}
+
+		var $form = $('#form-customer-add');
+		var $error = $('#customer-add-error');
+		var $save = $('#btn-customer-add-save');
+
+		function showError(html) {
+			$error.html(html).removeClass('d-none');
+		}
+
+		// Modal bisa dibuka berkali-kali dalam satu transaksi — selalu mulai kosong.
+		$modal.on('show.bs.modal', function () {
+			$form[0].reset();
+			$error.addClass('d-none').empty();
+		});
+
+		$modal.on('shown.bs.modal', function () {
+			$('#new_customer_name').trigger('focus');
+		});
+
+		$form.on('submit', function (e) {
+			e.preventDefault();
+			$error.addClass('d-none').empty();
+
+			var name = $.trim($('#new_customer_name').val());
+			var phone = $.trim($('#new_customer_phone').val());
+
+			// Validasi ringan di klien; aturan sebenarnya tetap di server.
+			if (!name || !phone) {
+				showError('Nama dan nomor telepon wajib diisi.');
+				return;
+			}
+
+			var data = {
+				name: name,
+				phone: phone,
+				email: $.trim($('#new_customer_email').val())
+			};
+			data[csrfName] = csrfToken();
+
+			$save.prop('disabled', true);
+
+			$.ajax({
+				type: 'POST',
+				url:
+					typeof sasanaCustomerAddUrl !== 'undefined' && sasanaCustomerAddUrl
+						? sasanaCustomerAddUrl
+						: baseUrl() + 'sasana/customer/addAjax',
+				dataType: 'json',
+				data: data,
+				success: function (res) {
+					if (!res || res.status !== 'ok') {
+						var msg = (res && res.message) || 'Gagal menyimpan customer.';
+						showError(Array.isArray(msg) ? msg.join('<br>') : msg);
+						return;
+					}
+
+					var customer = res.customer || {};
+
+					// Format teks disamakan dengan display typeahead ("Nama (0812…)")
+					// supaya hasil pilih-dari-daftar dan tambah-baru terlihat sama.
+					$('#customer_name').val(
+						customer.name +
+							(customer.phone ? ' (' + customer.phone + ')' : '')
+					);
+					$('#customer_id_hidden').val(customer.id || '');
+
+					$modal.modal('hide');
+					notify('success', 'Customer ' + customer.name + ' ditambahkan.');
+				},
+				error: function () {
+					showError('Terjadi kesalahan saat menyimpan customer.');
+				},
+				complete: function () {
+					$save.prop('disabled', false);
+				}
+			});
+		});
+	}
+
 	$(document).ready(function () {
 		initDataTable();
 		bindFilterPanel();
 		bindPrintBukti();
 		bindActivate();
 		bindPackageSummary();
+		bindCustomerAddModal();
 
 		// Form pembelian (Purchase::add) — customer wajib.
 		initCustomerTypeahead({
