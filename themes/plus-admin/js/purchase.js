@@ -437,7 +437,9 @@
 			var data = {
 				name: name,
 				phone: phone,
-				email: $.trim($('#new_customer_email').val())
+				email: $.trim($('#new_customer_email').val()),
+				gender: $.trim($('#new_customer_gender').val()),
+				address: $.trim($('#new_customer_address').val())
 			};
 			data[csrfName] = csrfToken();
 

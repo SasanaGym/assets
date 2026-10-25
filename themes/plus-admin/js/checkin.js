@@ -11,8 +11,11 @@
  *   jQuery, typeahead.bundle, Swal (sweetalert2), base_url, csrfName
  *
  * Variabel dari blok <script> di views/sasana/checkin.php:
- *   sasanaCheckinSearchUrl  — sasana/checkin/ajaxSearch
- *   sasanaCheckinProcessUrl — sasana/checkin/process
+ *   sasanaCheckinSearchUrl      — sasana/checkin/ajaxSearch
+ *   sasanaCheckinProcessUrl     — sasana/checkin/process
+ *   sasanaCheckinSingleVisitUrl — sasana/checkin/singleVisit
+ *   sasanaSingleVisitPackage    — paket sekali datang (null bila belum ada)
+ *   sasanaPaymentMethods        — key => label metode pembayaran
  */
 (function () {
 	'use strict';
@@ -34,6 +37,30 @@
 
 	function baseUrl() {
 		return typeof base_url !== 'undefined' ? base_url : '/';
+	}
+
+	// Paket sekali datang yang dipakai tombol "Aktifkan visit tunggal".
+	// Null berarti belum ada paket berdurasi 1 hari di menu Harga Visit & Paket.
+	function singleVisitPackage() {
+		return typeof sasanaSingleVisitPackage !== 'undefined' ? sasanaSingleVisitPackage : null;
+	}
+
+	function rupiah(value) {
+		var num = Number(value);
+		if (isNaN(num)) {
+			return '-';
+		}
+		return 'Rp ' + num.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+	}
+
+	// Nilai yang ditempel ke atribut HTML (data-*) harus di-escape: nama
+	// peserta berasal dari input bebas dan bisa memuat kutip.
+	function escapeAttr(value) {
+		return String(value === null || typeof value === 'undefined' ? '' : value)
+			.replace(/&/g, '&amp;')
+			.replace(/"/g, '&quot;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
 	}
 
 	// Teks yang masuk ke input setelah peserta dipilih.
@@ -66,13 +93,29 @@
 		var html = '';
 
 		if (!item.has_membership) {
+			var pkg = singleVisitPackage();
+
+			var tombolVisit = pkg
+				? '<button type="button" class="btn btn-sm btn-dark btn-single-visit" ' +
+					'data-customer-id="' + item.id + '" ' +
+					'data-customer-name="' + escapeAttr(item.name) + '" ' +
+					'data-customer-phone="' + escapeAttr(item.phone || '') + '">' +
+					'<i class="fas fa-bolt"></i> Aktifkan ' + pkg.name +
+					' (' + rupiah(pkg.price) + ')</button> '
+				: '';
+
+			var petunjuk = pkg
+				? 'Aktifkan paket sekali datang untuk bisa check-in hari ini, atau buat pembelian paket lain.'
+				: 'Paket visit tunggal belum tersedia — tambahkan paket berdurasi 1 hari di menu ' +
+					'<strong>Harga Visit &amp; Paket</strong>.';
+
 			html =
 				'<div class="alert alert-warning">' +
 				'<h5 class="mb-1">' + item.name + '</h5>' +
 				'<p class="mb-2">' + item.phone + '</p>' +
-				'<strong>Tidak ada membership aktif.</strong> ' +
-				'Silakan lakukan pembelian paket terlebih dahulu.' +
-				'<div class="mt-2"><a class="btn btn-sm btn-primary" href="' +
+				'<strong>Tidak ada membership aktif.</strong> ' + petunjuk +
+				'<div class="mt-2">' + tombolVisit +
+				'<a class="btn btn-sm btn-primary" href="' +
 				baseUrl() + 'sasana/purchase/add' +
 				'">Buat Pembelian</a></div>' +
 				'</div>';
@@ -242,6 +285,116 @@
 					notify('error', 'Terjadi kesalahan saat memproses check-in');
 					resetButton();
 				}
+			});
+		});
+
+		/* --------------------------------------------------------------
+		 * Visit tunggal — peserta tanpa membership aktif.
+		 *
+		 * Membuat pembelian + aktivasi + check-in sekaligus. Harga & metode
+		 * pembayaran tetap ditanyakan supaya catatan finansialnya utuh
+		 * (bukan "gratis" hanya karena tombolnya satu klik).
+		 * -------------------------------------------------------------- */
+		$('body').on('click', '.btn-single-visit', function () {
+			var pkg = singleVisitPackage();
+
+			if (!pkg) {
+				notify('error', 'Paket visit tunggal belum tersedia');
+				return;
+			}
+
+			if (typeof Swal === 'undefined') {
+				return;
+			}
+
+			var $btn = $(this);
+			var customerId = $btn.data('customer-id');
+			var customerName = $btn.attr('data-customer-name') || '';
+			var customerPhone = $btn.attr('data-customer-phone') || '';
+			var url =
+				typeof sasanaCheckinSingleVisitUrl !== 'undefined'
+					? sasanaCheckinSingleVisitUrl
+					: baseUrl() + 'sasana/checkin/singleVisit';
+
+			var options = '';
+			var methods =
+				typeof sasanaPaymentMethods !== 'undefined' ? sasanaPaymentMethods : {};
+
+			$.each(methods, function (key, label) {
+				options +=
+					'<option value="' + key + '"' + (key === 'cash' ? ' selected' : '') + '>' + label + '</option>';
+			});
+
+			Swal.fire({
+				title: 'Aktifkan ' + pkg.name,
+				icon: 'question',
+				html:
+					'<div class="text-start p-3 mb-3 bg-light rounded border">' +
+					'<div class="fw-bold fs-6 text-primary mb-1">' + customerName + '</div>' +
+					'<div class="text-muted small">' + customerPhone + '</div>' +
+					'</div>' +
+					'<div class="text-start mb-2">' +
+					'<label for="swal_sv_method" class="form-label fw-semibold mb-1">Metode Pembayaran</label>' +
+					'<select id="swal_sv_method" class="form-select">' + options + '</select>' +
+					'</div>' +
+					'<div class="text-start mb-2">' +
+					'<label for="swal_sv_price" class="form-label fw-semibold mb-1">Harga Dibayar</label>' +
+					'<input type="number" min="0" step="1000" id="swal_sv_price" class="form-control" ' +
+					'value="' + Number(pkg.price) + '">' +
+					'<small class="text-muted">Pembelian, aktivasi, dan check-in dicatat sekaligus.</small>' +
+					'</div>',
+				showCancelButton: true,
+				confirmButtonText: '<i class="fas fa-bolt me-1"></i> Aktifkan & Check-in',
+				cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
+				buttonsStyling: false,
+				customClass: {
+					confirmButton: 'btn btn-dark px-3 me-2',
+					cancelButton: 'btn btn-secondary px-3',
+					popup: 'rounded-3 shadow'
+				},
+				preConfirm: function () {
+					var price = $('#swal_sv_price').val();
+
+					if (price === '' || isNaN(price) || Number(price) < 0) {
+						Swal.showValidationMessage('Harga tidak valid');
+						return false;
+					}
+
+					return {
+						payment_method: $('#swal_sv_method').val(),
+						price_paid: price
+					};
+				}
+			}).then(function (result) {
+				if (!result.isConfirmed) {
+					return;
+				}
+
+				var data = {
+					customer_id: customerId,
+					payment_method: result.value.payment_method,
+					price_paid: result.value.price_paid,
+					trainer_id: $('#checkin-trainer').val() || ''
+				};
+				data[csrfName] = csrfToken();
+
+				$.ajax({
+					type: 'POST',
+					url: url,
+					dataType: 'json',
+					data: data,
+					success: function (res) {
+						notify(res.status === 'ok' ? 'success' : 'error', res.message);
+						if (res.status === 'ok') {
+							setTimeout(function () {
+								window.location.reload();
+							}, 1400);
+						}
+					},
+					error: function () {
+						notify('error', 'Terjadi kesalahan saat mengaktifkan visit tunggal');
+					}
+				});
 			});
 		});
 	});
