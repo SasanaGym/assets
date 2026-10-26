@@ -6,6 +6,7 @@
  *   1b  panel pencarian #dt-filter   (sale-result.php)
  *   8   kasir / keranjang penjualan  (sale-form.php)
  *   9   batalkan penjualan (void)    (sale-result.php)
+ *   9b  konfirmasi pengembalian      (sale-result.php & sale-detail.php)
  *   10  typeahead customer           (sale-form.php, pembeli opsional)
  *       cetak struk: SasanaRawBt (rawbt.js) + cetakNotaRawbt
  *
@@ -22,6 +23,8 @@
  *   #table-result        — tabel target      #dt-filter / -reset / -body
  *   #dataTables-url      — sasana/sale/getDataDT
  *   .btn-void-sale       — Sale::getDataDT(), punya data-id & data-void-title
+ *   .btn-return-sale     — Sale::getDataDT() & sale-detail.php,
+ *                          data-id & data-return-title
  *   .btn-cetak-rawbt — Sale::getDataDT() & sale-detail.php, data-invoice
  *   #sale-form, #sale-cart, #sale-total, #sale-change, #paid_amount,
  *   #sale-items-hidden, #sale_merchandise_name, #sale_customer_name,
@@ -223,6 +226,7 @@
 
 		function saleRender() {
 			var rows = '';
+			var adaWajibKembali = false;
 
 			saleCart.forEach(function (line, index) {
 				var warning =
@@ -230,10 +234,18 @@
 						? ' <span class="badge bg-danger">stok hanya ' + line.stock + '</span>'
 						: '';
 
+				var kembali = line.returnable
+					? ' <span class="badge bg-warning text-dark">wajib kembali</span>'
+					: '';
+
+				if (line.returnable) {
+					adaWajibKembali = true;
+				}
+
 				rows +=
 					'<tr>' +
 					'<td>' + line.name +
-					'<br><small class="text-muted">' + line.code + '</small>' + warning +
+					'<br><small class="text-muted">' + line.code + '</small>' + warning + kembali +
 					'</td>' +
 					'<td>' + money(line.price) + '</td>' +
 					'<td><input type="number" class="form-control form-control-sm sale-qty-input" min="1" step="1" ' +
@@ -252,6 +264,7 @@
 
 			$('#sale-cart tbody').html(rows);
 			$('#sale-total').text(money(saleTotal()));
+			$('#sale-return-hint').toggleClass('d-none', !adaWajibKembali);
 
 			saleSync();
 			saleSyncPaid();
@@ -281,6 +294,7 @@
 					unit: item.unit,
 					price: Number(item.price),
 					stock: Number(item.stock),
+					returnable: item.is_returnable ? 1 : 0,
 					qty: 1
 				});
 			}
@@ -302,6 +316,7 @@
 					unit: line.unit,
 					price: Number(line.price),
 					stock: Number(line.stock),
+					returnable: line.returnable ? 1 : 0,
 					qty: Number(line.qty)
 				};
 			});
@@ -474,6 +489,75 @@
 	}
 
 	/* ------------------------------------------------------------------
+	 * Konfirmasi pengembalian barang (handuk dsb.)
+	 * ------------------------------------------------------------------ */
+	function bindReturn() {
+		// Didelegasikan ke document: tombol yang sama dipakai di daftar
+		// penjualan (dirender ulang tiap draw) dan di halaman struk.
+		$(document).on('click', '.btn-return-sale', function () {
+			var id = $(this).data('id');
+			var title = $(this).data('return-title') || 'Konfirmasi pengembalian barang?';
+			var url = baseUrl() + 'sasana/sale/confirmReturn';
+
+			if (typeof Swal === 'undefined') {
+				return;
+			}
+
+			Swal.fire({
+				title: 'Konfirmasi Pengembalian',
+				html: title,
+				input: 'textarea',
+				inputLabel: 'Catatan kondisi barang (opsional)',
+				inputPlaceholder: 'mis. handuk kembali dalam kondisi baik',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonText: '<i class="fas fa-check me-1"></i> Ya, sudah diterima',
+				cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
+				buttonsStyling: false,
+				customClass: {
+					confirmButton: 'btn btn-warning px-3 me-2',
+					cancelButton: 'btn btn-secondary px-3',
+					input: 'form-control',
+					inputLabel: 'fw-semibold mb-1 text-start d-block',
+					popup: 'rounded-3 shadow'
+				}
+			}).then(function (result) {
+				if (!result.isConfirmed) {
+					return;
+				}
+
+				var data = { id: id, note: result.value || '' };
+				data[csrfName] = csrfToken();
+
+				$.ajax({
+					type: 'POST',
+					url: url,
+					dataType: 'json',
+					data: data,
+					success: function (res) {
+						notify(res.status === 'ok' ? 'success' : 'error', res.message);
+
+						if (res.status !== 'ok') {
+							return;
+						}
+
+						// Halaman struk tidak punya DataTables — muat ulang halaman
+						// supaya blok "Menunggu pengembalian" ikut berubah.
+						if (dataTable) {
+							reloadTable();
+						} else {
+							window.location.reload();
+						}
+					},
+					error: function () {
+						notify('error', 'Terjadi kesalahan saat mengonfirmasi pengembalian');
+					}
+				});
+			});
+		});
+	}
+
+	/* ------------------------------------------------------------------
 	 * Typeahead customer (pembeli opsional, kosong berarti walk-in)
 	 * ------------------------------------------------------------------ */
 	function initCustomerTypeahead(opt) {
@@ -625,6 +709,7 @@
 		bindFilterPanel();
 		initCashier();
 		bindVoid();
+		bindReturn();
 
 		// Kasir penjualan (Sale::add) — pembeli opsional, kosong berarti walk-in.
 		initCustomerTypeahead({
