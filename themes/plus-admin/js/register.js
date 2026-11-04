@@ -12,6 +12,8 @@
  *   #dataTables-url       — endpoint sasana/register/getDataDT
  *   .btn-delete-register  — dirender Register::formatActions(), punya data-id &
  *                           data-delete-title
+ *   .btn-confirm-register — dirender Register::formatActions(), punya data-id &
+ *                           data-confirm-title; POST sasana/register/confirm
  */
 (function () {
 	'use strict';
@@ -154,8 +156,63 @@
 		});
 	}
 
+	/* ------------------------------------------------------------------
+	 * Konfirmasi register → tandai di D1 + salin ke tabel customers
+	 * ------------------------------------------------------------------ */
+	function bindConfirm() {
+		$('#table-result').on('click', '.btn-confirm-register', function () {
+			var $btn = $(this);
+			var id = $btn.data('id');
+			var title = $btn.data('confirm-title') || 'Konfirmasi data register ini?';
+			var url = baseUrl() + 'sasana/register/confirm';
+
+			if (typeof Swal === 'undefined') {
+				return;
+			}
+
+			Swal.fire({
+				title: 'Konfirmasi',
+				html: title,
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonText: 'Ya, konfirmasi',
+				cancelButtonText: 'Batal',
+				buttonsStyling: false,
+				customClass: {
+					confirmButton: 'btn btn-primary px-3 me-2',
+					cancelButton: 'btn btn-secondary px-3',
+					popup: 'rounded-3 shadow'
+				}
+			}).then(function (result) {
+				if (!result.isConfirmed) {
+					return;
+				}
+
+				var data = { id: id };
+				data[csrfName] = csrfToken();
+				$btn.prop('disabled', true);
+
+				$.ajax({
+					type: 'POST',
+					url: url,
+					dataType: 'json',
+					data: data,
+					success: function (res) {
+						notify(res.status === 'ok' ? 'success' : 'error', res.message);
+						reloadTable();
+					},
+					error: function () {
+						notify('error', 'Terjadi kesalahan saat mengonfirmasi register');
+						$btn.prop('disabled', false);
+					}
+				});
+			});
+		});
+	}
+
 	$(document).ready(function () {
 		initDataTable();
 		bindDelete();
+		bindConfirm();
 	});
 })();
